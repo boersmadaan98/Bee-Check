@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Bijen Controle App</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="app-header">
+        <div>
+            <p class="header-label">Bijen Controle</p>
+            <h1>Mijn bijenkasten</h1>
+        </div>
+
+        <div class="bee-logo" aria-hidden="true">
+            🐝
+        </div>
+    </header>
+
+    <main class="app-container">
+
+<!-- Overzicht van alle bijenkasten -->
+<section id="kasten-overzicht">
+
+    <div class="pagina-intro">
+
+        <div class="pagina-intro-tekst">
+            <h2>Kies een kast</h2>
+
+            <p>
+                Selecteer de kast die je wilt bekijken of controleren.
+            </p>
+        </div>
+
+        <div class="home-knoppen">
+            <button
+                id="instellingen-knop"
+                class="kleine-knop knop-licht"
+                type="button"
+            >
+                ⚙️ Instellingen
+            </button>
+        </div>
+
+    </div>
+
+    <div id="kasten-lijst" class="kasten-lijst">
+        <!-- JavaScript zet hier de bijenkasten neer -->
+    </div>
+
+</section>
+
+        </section>
+
+        <!-- Detailpagina van de gekozen bijenkast -->
+        <section id="kast-detail" class="hidden">
+
+            <button
+                id="terug-knop"
+                class="terug-knop"
+                type="button"
+            >
+                ← Terug naar mijn kasten
+            </button>
+
+            <!-- Hoofdkaart -->
+            <article class="kast-hoofdkaart">
+
+                <div class="kast-hoofdkaart-boven">
+
+                    <div>
+                        <p class="kaart-label">Bijenkast</p>
+                        <h2 id="detail-naam">Kast 1</h2>
+
+                        <p class="kast-locatie">
+                            📍
+                            <span id="detail-locatie">
+                                Achtertuin
+                            </span>
+                        </p>
+                    </div>
+
+                    <span
+                        id="detail-status"
+                        class="status-badge status-goed"
+                    >
+                        In orde
+                    </span>
+
+                </div>
+
+                <div class="laatste-controle">
+
+                    <div>
+                        <span class="informatie-label">
+                            Laatste controle
+                        </span>
+
+                        <strong id="detail-laatste-controle">
+                            18 juli 2026
+                        </strong>
+                    </div>
+
+                    <div class="controle-dagen">
+                        <span id="detail-dagen-geleden">
+                            6 dagen geleden
+                        </span>
+                    </div>
+
+                </div>
+
+            </article>
+
+            <!-- Belangrijkste toestand -->
+            <section class="status-sectie">
+
+                <div class="sectie-titel">
+                    <div>
+                        <p class="sectie-label">Actuele toestand</p>
+                        <h3>Hoe staat deze kast ervoor?</h3>
+                    </div>
+                </div>
+
+<div class="seizoen-balk">
+    <span>Actief seizoen</span>
+    <strong id="detail-seizoen">2026</strong>
+</div>
+
+<div class="status-grid">
+
+    <article class="status-kaart">
+        <span class="status-icoon">👑</span>
+
+        <div>
+            <span class="status-titel">Koningin</span>
+            <strong id="detail-koningin">Gezien</strong>
+        </div>
+    </article>
+
+    <article class="status-kaart">
+        <span class="status-icoon">🐣</span>
+
+        <div>
+            <span class="status-titel">Broed</span>
+            <strong id="detail-broed">Goed patroon</strong>
+        </div>
+    </article>
+
+    <article class="status-kaart">
+        <span class="status-icoon">🐝</span>
+
+        <div>
+            <span class="status-titel">Ramen bezet</span>
+            <strong>
+                <span id="detail-ramen-bezet">9</span> van 11
+            </strong>
+        </div>
+    </article>
+
+    <article class="status-kaart">
+        <span class="status-icoon">🥚</span>
+
+        <div>
+            <span class="status-titel">Ramen BRIAS</span>
+            <strong>
+                <span id="detail-ramen-brias">7</span> van 11
+            </strong>
+        </div>
+    </article>
+
+    <article class="status-kaart">
+        <span class="status-icoon">🏠</span>
+
+        <div>
+            <span class="status-titel">Broedkamers</span>
+            <strong id="detail-broedkamers">1</strong>
+        </div>
+    </article>
+
+    <article class="status-kaart">
+        <span class="status-icoon">🍯</span>
+
+        <div>
+            <span class="status-titel">Honingkamers</span>
+            <strong id="detail-honingkamers">1</strong>
+        </div>
+    </article>
+
+    <article class="status-kaart">
+        <span class="status-icoon">🥫</span>
+
+        <div>
+            <span class="status-titel">Voer in kast</span>
+            <strong id="detail-voer">Voldoende</strong>
+        </div>
+    </article>
+
+    <article class="status-kaart">
+        <span class="status-icoon">🔬</span>
+
+        <div>
+            <span class="status-titel">Varroa</span>
+            <strong id="detail-varroa">
+                Geen bijzonderheden
+            </strong>
+        </div>
+    </article>
+
+    <article class="status-kaart">
+        <span class="status-icoon">📦</span>
+
+        <div>
+            <span class="status-titel">Ruimte</span>
+            <strong id="detail-ruimte">
+                Voldoende ruimte
+            </strong>
+        </div>
+    </article>
+
+    <article class="status-kaart oogst-kaart">
+        <span class="status-icoon">🪣</span>
+
+        <div>
+            <span class="status-titel">Honing meegenomen</span>
+            <strong id="detail-honing-oogst">
+                Nog niet
+            </strong>
+
+            <span
+                id="detail-oogst-ramen"
+                class="status-subtekst"
+            >
+                0 ramen dit seizoen
+            </span>
+        </div>
+    </article>
+
+            </section>
+
+            <!-- Volgende actie -->
+            <article class="actie-kaart">
+
+                <div class="actie-icoon">
+                    ✓
+                </div>
+
+                <div class="actie-inhoud">
+                    <span class="actie-label">
+                        Eerstvolgende actie
+                    </span>
+
+                    <strong id="detail-volgende-actie">
+                        Over één week opnieuw controleren
+                    </strong>
+                </div>
+
+            </article>
+
+            <button
+                id="controle-starten-knop"
+                class="hoofdknop"
+                type="button"
+            >
+                <span>＋</span>
+                Nieuwe controle starten
+            </button>
+
+            <!-- Uitklapbare informatie -->
+            <section class="details-sectie">
+
+                <details class="uitklap-kaart" open>
+                    <summary>
+                        <span>
+                            📝 Laatste controle
+                        </span>
+
+                        <span class="uitklap-pijl">⌄</span>
+                    </summary>
+
+                    <div class="uitklap-inhoud">
+
+                        <div class="samenvatting-rij">
+                            <span>Datum</span>
+                            <strong id="controle-datum">
+                                18 juli 2026
+                            </strong>
+                        </div>
+
+                        <div class="samenvatting-rij">
+                            <span>Temperament</span>
+                            <strong id="controle-temperament">
+                                Rustig
+                            </strong>
+                        </div>
+
+                        <div class="notitie-blok">
+                            <span>Notities</span>
+
+                            <p id="controle-notities">
+                                Mooi gesloten broednest. Koningin gezien.
+                                Voldoende voer aanwezig.
+                            </p>
+                        </div>
+
+                    </div>
+                </details>
+
+                <details class="uitklap-kaart">
+                    <summary>
+                        <span>
+                            🕒 Controlehistorie
+                        </span>
+
+                        <span class="uitklap-pijl">⌄</span>
+                    </summary>
+
+                    <div
+                        id="controle-historie"
+                        class="uitklap-inhoud historie-lijst"
+                    >
+                        <!-- JavaScript vult de historie -->
+                    </div>
+                </details>
+
+                <details class="uitklap-kaart">
+                    <summary>
+                        <span>
+                            🏠 Kastinformatie
+                        </span>
+
+                        <span class="uitklap-pijl">⌄</span>
+                    </summary>
+
+                    <div class="uitklap-inhoud">
+
+                        <div class="samenvatting-rij">
+                            <span>Kasttype</span>
+                            <strong id="detail-kasttype">
+                                Spaarkast
+                            </strong>
+                        </div>
+
+                        <div class="samenvatting-rij">
+                            <span>Aantal bakken</span>
+                            <strong id="detail-bakken">
+                                2
+                            </strong>
+                        </div>
+
+                        <div class="samenvatting-rij">
+                            <span>Koninginkleur</span>
+                            <strong id="detail-koninginkleur">
+                                Wit
+                            </strong>
+                        </div>
+
+                        <div class="samenvatting-rij">
+                            <span>Herkomst volk</span>
+                            <strong id="detail-herkomst">
+                                Eigen aflegger
+                            </strong>
+                        </div>
+
+                    </div>
+                </details>
+
+                <details class="uitklap-kaart">
+                    <summary>
+                        <span>
+                            💊 Acties en behandelingen
+                        </span>
+
+                        <span class="uitklap-pijl">⌄</span>
+                    </summary>
+
+                    <div class="uitklap-inhoud">
+
+<div class="seizoen-samenvatting">
+
+    <p class="seizoen-uitleg">
+        Totalen voor seizoen
+        <strong id="acties-seizoen">2026</strong>
+    </p>
+
+    <div class="voer-grid">
+
+        <article class="voer-kaart">
+            <span class="voer-icoon">🟨</span>
+
+            <div>
+                <span class="status-titel">
+                    Apifonda gegeven
+                </span>
+
+                <strong>
+                    <span id="detail-apifonda">0</span>
+                    zakken
+                </strong>
+            </div>
+        </article>
+
+        <article class="voer-kaart">
+            <span class="voer-icoon">💧</span>
+
+            <div>
+                <span class="status-titel">
+                    Suikerwater gegeven
+                </span>
+
+                <strong>
+                    <span id="detail-suikerwater">0</span>
+                    liter
+                </strong>
+            </div>
+        </article>
+
+    </div>
+
+    <div class="actie-overzicht">
+
+        <div class="samenvatting-rij">
+            <span>Honing geoogst</span>
+            <strong id="actie-honing-geoogst">
+                Nee
+            </strong>
+        </div>
+
+        <div class="samenvatting-rij">
+            <span>Honingramen meegenomen</span>
+            <strong id="actie-oogst-ramen">
+                0
+            </strong>
+        </div>
+
+        <div class="samenvatting-rij">
+            <span>Laatste voeractie</span>
+            <strong id="actie-laatste-voer">
+                Nog niet geregistreerd
+            </strong>
+        </div>
+
+        <div class="samenvatting-rij">
+            <span>Laatste behandeling</span>
+            <strong id="actie-laatste-behandeling">
+                Geen behandeling geregistreerd
+            </strong>
+        </div>
+
+    </div>
+
+</div>
+
+                    </div>
+                </details>
+
+            </section>
+
+        </section>
+<!-- Nieuwe controle invoeren -->
+<section id="controle-formulier-scherm" class="hidden">
+
+    <button
+        id="controle-annuleren-knop"
+        class="terug-knop"
+        type="button"
+    >
+        ← Annuleren
+    </button>
+
+    <form id="controle-formulier" class="controle-formulier">
+
+        <div class="formulier-kop">
+            <p class="kaart-label">Nieuwe controle</p>
+
+            <h2 id="formulier-kastnaam">
+                Kast 1
+            </h2>
+
+            <p>
+                Vul de actuele situatie van de kast in.
+            </p>
+        </div>
+
+        <div class="formulier-sectie">
+
+            <h3>Volk en broed</h3>
+
+            <label class="invoer-groep">
+                <span>Koningin</span>
+
+                <select id="invoer-koningin">
+                    <option value="Gezien">Gezien</option>
+                    <option value="Niet gezien">Niet gezien</option>
+                    <option value="Bewijs aanwezig">
+                        Niet gezien, wel eitjes of jong broed
+                    </option>
+                    <option value="Geen bewijs">
+                        Geen koningin of bewijs gevonden
+                    </option>
+                </select>
+            </label>
+
+            <label class="invoer-groep">
+                <span>Broedbeeld</span>
+
+                <select id="invoer-broed">
+                    <option value="Goed patroon">
+                        Goed patroon
+                    </option>
+                    <option value="Redelijk patroon">
+                        Redelijk patroon
+                    </option>
+                    <option value="Onregelmatig">
+                        Onregelmatig
+                    </option>
+                    <option value="Geen broed">
+                        Geen broed
+                    </option>
+                </select>
+            </label>
+
+            <div class="nummer-grid">
+
+                <label class="invoer-groep">
+                    <span>Ramen bezet</span>
+
+                    <input
+                        id="invoer-ramen-bezet"
+                        type="number"
+                        min="1"
+                        max="11"
+                        required
+                    >
+                </label>
+
+                <label class="invoer-groep">
+                    <span>Ramen BRIAS</span>
+
+                    <input
+                        id="invoer-ramen-brias"
+                        type="number"
+                        min="0"
+                        max="11"
+                        required
+                    >
+                </label>
+
+            </div>
+
+        </div>
+
+        <div class="formulier-sectie">
+
+            <h3>Kastopbouw</h3>
+
+            <div class="nummer-grid">
+
+                <label class="invoer-groep">
+                    <span>Broedkamers</span>
+
+                    <input
+                        id="invoer-broedkamers"
+                        type="number"
+                        min="1"
+                        max="5"
+                        required
+                    >
+                </label>
+
+                <label class="invoer-groep">
+                    <span>Honingkamers</span>
+
+                    <input
+                        id="invoer-honingkamers"
+                        type="number"
+                        min="0"
+                        max="10"
+                        required
+                    >
+                </label>
+
+            </div>
+
+            <label class="invoer-groep">
+                <span>Beschikbare ruimte</span>
+
+                <select id="invoer-ruimte">
+                    <option value="Voldoende ruimte">
+                        Voldoende ruimte
+                    </option>
+                    <option value="Bijna vol">
+                        Bijna vol
+                    </option>
+                    <option value="Extra ruimte nodig">
+                        Extra ruimte nodig
+                    </option>
+                </select>
+            </label>
+
+        </div>
+
+        <div class="formulier-sectie">
+
+            <h3>Voer en gezondheid</h3>
+
+            <label class="invoer-groep">
+                <span>Voer in de kast</span>
+
+                <select id="invoer-voer">
+                    <option value="Ruim voldoende">
+                        Ruim voldoende
+                    </option>
+                    <option value="Voldoende">
+                        Voldoende
+                    </option>
+                    <option value="Laag">
+                        Laag
+                    </option>
+                    <option value="Bijvoeren nodig">
+                        Bijvoeren nodig
+                    </option>
+                </select>
+            </label>
+
+            <label class="invoer-groep">
+                <span>Varroa</span>
+
+                <select id="invoer-varroa">
+                    <option value="Geen bijzonderheden">
+                        Geen bijzonderheden
+                    </option>
+                    <option value="Meting uitgevoerd">
+                        Meting uitgevoerd
+                    </option>
+                    <option value="Meting nodig">
+                        Meting nodig
+                    </option>
+                    <option value="Behandeling nodig">
+                        Behandeling nodig
+                    </option>
+                </select>
+            </label>
+
+        </div>
+
+        <div class="formulier-sectie">
+
+            <h3>Oogst en bijvoeren</h3>
+
+            <label class="schakel-rij">
+                <div>
+                    <strong>Honingramen meegenomen</strong>
+                    <span>
+                        Zijn er tijdens deze controle ramen meegenomen?
+                    </span>
+                </div>
+
+                <input
+                    id="invoer-honing-meegenomen"
+                    type="checkbox"
+                >
+            </label>
+
+            <label class="invoer-groep">
+                <span>Aantal honingramen meegenomen</span>
+
+                <input
+                    id="invoer-honingramen"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value="0"
+                >
+            </label>
+
+            <div class="nummer-grid">
+
+                <label class="invoer-groep">
+                    <span>Zakken Apifonda gegeven</span>
+
+                    <input
+                        id="invoer-apifonda"
+                        type="number"
+                        min="0"
+                        max="50"
+                        step="0.5"
+                        value="0"
+                    >
+                </label>
+
+                <label class="invoer-groep">
+                    <span>Suikerwater gegeven</span>
+
+                    <div class="invoer-met-eenheid">
+                        <input
+                            id="invoer-suikerwater"
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.5"
+                            value="0"
+                        >
+
+                        <span>liter</span>
+                    </div>
+                </label>
+
+            </div>
+
+        </div>
+
+        <div class="formulier-sectie">
+
+            <h3>Notities en vervolg</h3>
+
+            <label class="invoer-groep">
+                <span>Notities</span>
+
+                <textarea
+                    id="invoer-notities"
+                    rows="5"
+                    placeholder="Wat viel op tijdens de controle?"
+                ></textarea>
+            </label>
+
+            <label class="invoer-groep">
+                <span>Volgende actie</span>
+
+                <textarea
+                    id="invoer-volgende-actie"
+                    rows="3"
+                    placeholder="Bijvoorbeeld: over 7 dagen opnieuw controleren"
+                ></textarea>
+            </label>
+
+        </div>
+
+        <button
+            class="hoofdknop"
+            type="submit"
+        >
+            Controle opslaan
+        </button>
+
+    </form>
+
+</section>
+<!-- Instellingenvenster -->
+<section
+    id="instellingen-scherm"
+    class="instellingen-overlay hidden"
+>
+
+    <div class="instellingen-venster">
+
+        <div class="instellingen-kop">
+            <div>
+                <p class="kaart-label">
+                    Instellingen
+                </p>
+
+                <h2>Kast aanpassen</h2>
+            </div>
+
+            <button
+                id="instellingen-sluiten-knop"
+                class="sluit-knop"
+                type="button"
+                aria-label="Instellingen sluiten"
+            >
+                ✕
+            </button>
+        </div>
+
+        <form id="instellingen-formulier">
+
+            <button
+                 id="nieuwe-kast-instellingen-knop"
+                class="nieuwe-kast-instellingen-knop"
+                type="button"
+>
+    ＋ Nieuwe kast toevoegen
+</button>
+
+            <label class="invoer-groep">
+                <span>Kies een kast</span>
+
+                <select id="instellingen-kast-keuze">
+                    <!-- Wordt gevuld met JavaScript -->
+                </select>
+            </label>
+
+            <div class="foto-instellingen">
+
+                <div
+                    id="kast-foto-preview"
+                    class="kast-foto-preview"
+                >
+                    <span>🐝</span>
+                    <p>Nog geen foto</p>
+                </div>
+
+                <label class="foto-kiezen-knop">
+                    📷 Foto kiezen
+
+                    <input
+                        id="instellingen-foto"
+                        type="file"
+                        accept="image/*"
+                    >
+                </label>
+
+                <button
+                    id="foto-verwijderen-knop"
+                    class="tekst-knop"
+                    type="button"
+                >
+                    Foto verwijderen
+                </button>
+
+            </div>
+
+            <label class="invoer-groep">
+                <span>Naam van de kast</span>
+
+                <input
+                    id="instellingen-naam"
+                    type="text"
+                    maxlength="40"
+                    required
+                >
+            </label>
+
+            <label class="invoer-groep">
+                <span>Locatie</span>
+
+                <input
+                    id="instellingen-locatie"
+                    type="text"
+                    maxlength="60"
+                    placeholder="Bijvoorbeeld: Achtertuin"
+                    required
+                >
+            </label>
+            
+<div class="verwijder-sectie">
+    <button
+        id="kast-verwijderen-knop"
+        class="kast-verwijderen-knop"
+        type="button"
+    >
+        🗑️ Kast verwijderen
+    </button>
+
+    <p>
+        Hierbij worden ook alle controles en seizoensgegevens
+        van deze kast verwijderd.
+    </p>
+</div>
+            <div class="instellingen-acties">
+
+                <button
+                    id="instellingen-annuleren-knop"
+                    class="secundaire-knop"
+                    type="button"
+                >
+                    Annuleren
+                </button>
+
+                <button
+                    class="hoofdknop instellingen-opslaan"
+                    type="submit"
+                >
+                    Wijzigingen opslaan
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
