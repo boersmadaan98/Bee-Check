@@ -882,6 +882,39 @@ function maakKoninginMarkeringTekst(kleur) {
 // HOMEPAGINA EN KASTENOVERZICHT
 // ========================================
 
+function verplaatsKast(kastId, richting) {
+    const huidigeIndex =
+        bijenkasten.findIndex(
+            (kast) => kast.id === kastId
+        );
+
+    if (huidigeIndex === -1) {
+        return;
+    }
+
+    const nieuweIndex =
+        huidigeIndex + richting;
+
+    if (
+        nieuweIndex < 0 ||
+        nieuweIndex >= bijenkasten.length
+    ) {
+        return;
+    }
+
+    const tijdelijkeKast =
+        bijenkasten[huidigeIndex];
+
+    bijenkasten[huidigeIndex] =
+        bijenkasten[nieuweIndex];
+
+    bijenkasten[nieuweIndex] =
+        tijdelijkeKast;
+
+    bewaarGegevens();
+    toonKastenOverzicht();
+}
+
 function toonKastenOverzicht() {
     const kastenLijst =
         haalElementOp("kasten-lijst");
@@ -893,11 +926,12 @@ function toonKastenOverzicht() {
     kastenLijst.innerHTML = "";
 
     bijenkasten.forEach((kast) => {
-        const kaart =
-            document.createElement("button");
+const kaart =
+    document.createElement("article");
 
-        kaart.type = "button";
-        kaart.className = "kast-keuzekaart";
+kaart.className = "kast-keuzekaart";
+kaart.tabIndex = 0;
+kaart.setAttribute("role", "button");
 
         kaart.setAttribute(
             "aria-label",
@@ -945,27 +979,93 @@ function toonKastenOverzicht() {
                 </span>
 
             </div>
+<div class="kast-keuzekaart-onder">
 
-            <div class="kast-keuzekaart-onder">
+    <span class="laatste-controle-klein">
+        Laatste controle:
+        ${maakVeiligeTekst(kast.laatsteControle)}
+    </span>
 
-                <span class="laatste-controle-klein">
-                    Laatste controle:
-                    ${maakVeiligeTekst(kast.laatsteControle)}
-                </span>
+    <div class="kast-kaart-acties">
 
-                <span class="kaart-pijl">
-                    ›
-                </span>
+        <button
+            type="button"
+            class="volgorde-knop kast-omhoog"
+            aria-label="${maakVeiligeTekst(kast.naam)} omhoog verplaatsen"
+        >
+            ↑
+        </button>
 
-            </div>
+        <button
+            type="button"
+            class="volgorde-knop kast-omlaag"
+            aria-label="${maakVeiligeTekst(kast.naam)} omlaag verplaatsen"
+        >
+            ↓
+        </button>
+
+        <span class="kaart-pijl">
+            ›
+        </span>
+
+    </div>
+
+</div>
         `;
 
-        kaart.addEventListener(
-            "click",
-            function () {
-                openKast(kast.id);
-            }
-        );
+const omhoogKnop =
+    kaart.querySelector(".kast-omhoog");
+
+const omlaagKnop =
+    kaart.querySelector(".kast-omlaag");
+
+if (omhoogKnop) {
+    omhoogKnop.addEventListener(
+        "click",
+        function (event) {
+            event.stopPropagation();
+
+            verplaatsKast(
+                kast.id,
+                -1
+            );
+        }
+    );
+}
+
+if (omlaagKnop) {
+    omlaagKnop.addEventListener(
+        "click",
+        function (event) {
+            event.stopPropagation();
+
+            verplaatsKast(
+                kast.id,
+                1
+            );
+        }
+    );
+}
+
+kaart.addEventListener(
+    "click",
+    function () {
+        openKast(kast.id);
+    }
+);
+
+kaart.addEventListener(
+    "keydown",
+    function (event) {
+        if (
+            event.key === "Enter" ||
+            event.key === " "
+        ) {
+            event.preventDefault();
+            openKast(kast.id);
+        }
+    }
+);
 
         kastenLijst.appendChild(kaart);
     });

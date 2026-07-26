@@ -1396,3 +1396,35 @@ summary:focus-visible {
     text-align: center;
     font-size: 15px;
 }
+.kast-kaart-acties {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.volgorde-knop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+    padding: 0;
+
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    background: white;
+
+    color: var(--tekst);
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.volgorde-knop:hover {
+    background: var(--zachte-achtergrond);
+}
+
+.volgorde-knop:active {
+    transform: scale(0.94);
+}
