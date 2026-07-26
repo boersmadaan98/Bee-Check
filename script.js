@@ -25,6 +25,7 @@ const standaardBijenkasten = [
         naam: "Kast 1",
         locatie: "Achtertuin",
         foto: null,
+        ramenPerBroedkamer: 11,
 
         status: "In orde",
         laatsteControle: "18 juli 2026",
@@ -50,8 +51,7 @@ const standaardBijenkasten = [
             "Mooi gesloten broednest. Koningin gezien. Voldoende voer aanwezig.",
 
         kasttype: "Spaarkast",
-        bakken: 2,
-        koninginkleur: "Wit",
+        koninginMarkering: "wit",
         herkomst: "Eigen aflegger",
 
         seizoenen: {
@@ -84,6 +84,7 @@ const standaardBijenkasten = [
         naam: "Kast 2",
         locatie: "Achtertuin",
         foto: null,
+        ramenPerBroedkamer: 10,
 
         status: "Aandacht",
         laatsteControle: "12 juli 2026",
@@ -109,8 +110,7 @@ const standaardBijenkasten = [
             "Koningin niet gezien. Wel eitjes aanwezig. Voervoorraad lijkt laag.",
 
         kasttype: "Spaarkast",
-        bakken: 1,
-        koninginkleur: "Onbekend",
+        koninginMarkering: "wit",
         herkomst: "Aangekocht volk",
 
         seizoenen: {
@@ -143,6 +143,7 @@ const standaardBijenkasten = [
         naam: "Kast 3",
         locatie: "Weiland",
         foto: null,
+        ramenPerBroedkamer: 11,
 
         status: "In orde",
         laatsteControle: "20 juli 2026",
@@ -168,8 +169,7 @@ const standaardBijenkasten = [
             "Sterk volk met veel bijen. Binnenkort extra ruimte geven.",
 
         kasttype: "Dadant",
-        bakken: 3,
-        koninginkleur: "Blauw",
+        koninginMarkering: "wit",
         herkomst: "Zwerm 2025",
 
         seizoenen: {
@@ -210,49 +210,155 @@ function laadGegevens() {
         const opgeslagenGegevens =
             localStorage.getItem(opslagNaam);
 
+        console.log(
+            "Opgeslagen gegevens gevonden:",
+            Boolean(opgeslagenGegevens)
+        );
+
         if (!opgeslagenGegevens) {
-            return maakKopie(standaardBijenkasten);
+            return maakKopie(
+                standaardBijenkasten
+            );
         }
 
-        const gegevens = JSON.parse(opgeslagenGegevens);
+        const gegevens =
+            JSON.parse(opgeslagenGegevens);
 
         if (!Array.isArray(gegevens)) {
-            return maakKopie(standaardBijenkasten);
+            throw new Error(
+                "De opgeslagen gegevens zijn geen geldige kastenlijst."
+            );
         }
+
+        gegevens.forEach((kast) => {
+            if (!kast.ramenPerBroedkamer) {
+                kast.ramenPerBroedkamer = 11;
+            }
+
+            if (!kast.temperamentScore) {
+    kast.temperamentScore =
+        maakTemperamentScore(
+            kast.temperament
+        );
+}
+
+            if (!kast.koninginMarkering) {
+                const oudeKleur = String(
+                    kast.koninginkleur || ""
+                ).toLowerCase();
+
+                const geldigeKleuren = [
+                    "wit",
+                    "geel",
+                    "rood",
+                    "groen",
+                    "blauw"
+                ];
+
+                kast.koninginMarkering =
+                    geldigeKleuren.includes(
+                        oudeKleur
+                    )
+                        ? oudeKleur
+                        : "niet-gemarkeerd";
+            }
+
+            if (!kast.seizoenen) {
+                kast.seizoenen = {};
+            }
+
+            if (!Array.isArray(kast.historie)) {
+                kast.historie = [];
+            }
+
+            if (!kast.volgendeControleDatum) {
+                const advies =
+                    berekenControleAdvies(kast);
+
+                kast.volgendeControleDatum =
+                    maakIsoDatum(
+                        voegDagenToe(
+                            new Date(),
+                            advies.dagen
+                        )
+                    );
+
+                kast.controleAdviesDagen =
+                    advies.dagen;
+
+                kast.controleAdviesReden =
+                    advies.reden;
+
+                kast.automatischControleAdvies =
+                    true;
+            }
+        });
 
         return gegevens;
     } catch (fout) {
         console.error(
-            "De opgeslagen gegevens konden niet worden geladen:",
+            "Laden van gegevens mislukt:",
             fout
         );
 
-        return maakKopie(standaardBijenkasten);
+        alert(
+            "De opgeslagen gegevens konden niet worden geladen. " +
+            "De standaardkasten worden tijdelijk getoond. " +
+            "Wis de browsergegevens nog niet."
+        );
+
+        return maakKopie(
+            standaardBijenkasten
+        );
     }
 }
 
 function bewaarGegevens() {
     try {
+        const gegevensTekst =
+            JSON.stringify(bijenkasten);
+
         localStorage.setItem(
             opslagNaam,
-            JSON.stringify(bijenkasten)
+            gegevensTekst
         );
+
+        console.log(
+            "Gegevens opgeslagen:",
+            Math.round(gegevensTekst.length / 1024),
+            "KB"
+        );
+
+        return true;
     } catch (fout) {
         console.error(
-            "De gegevens konden niet worden opgeslagen:",
+            "Opslaan mislukt:",
             fout
         );
 
-        alert(
-            "De gegevens konden niet worden opgeslagen. " +
-            "De gekozen foto is mogelijk te groot."
-        );
+        if (
+            fout.name === "QuotaExceededError" ||
+            fout.name === "NS_ERROR_DOM_QUOTA_REACHED"
+        ) {
+            alert(
+                "De browseropslag is vol. Waarschijnlijk is een kastfoto te groot. " +
+                "Verwijder of verklein de foto en probeer opnieuw."
+            );
+        } else {
+            alert(
+                "De gegevens konden niet worden opgeslagen. " +
+                "Open F12 → Console om de fout te bekijken."
+            );
+        }
+
+        return false;
     }
 }
 
 function maakKopie(gegevens) {
     return JSON.parse(JSON.stringify(gegevens));
 }
+
 
 
 // ========================================
@@ -269,6 +375,78 @@ function haalElementOp(id) {
     }
 
     return element;
+}
+function maakTemperamentTekst(score) {
+    const waarde = Number(score);
+
+    if (waarde === 1) {
+        return "Zeer rustig";
+    }
+
+    if (waarde === 2) {
+        return "Rustig";
+    }
+
+    if (waarde === 3) {
+        return "Alert / normaal";
+    }
+
+    if (waarde === 4) {
+        return "Prikkelbaar";
+    }
+
+    if (waarde === 5) {
+        return "Erg aanvallend";
+    }
+
+    return "Onbekend";
+}
+
+function maakTemperamentScore(temperamentTekst) {
+    const tekst = String(
+        temperamentTekst || ""
+    ).toLowerCase();
+
+    if (tekst.includes("zeer rustig")) {
+        return 1;
+    }
+
+    if (tekst.includes("rustig")) {
+        return 2;
+    }
+
+    if (tekst.includes("alert")) {
+        return 3;
+    }
+
+    if (tekst.includes("normaal")) {
+        return 3;
+    }
+
+    if (tekst.includes("prikkelbaar")) {
+        return 4;
+    }
+
+    if (tekst.includes("aanvallend")) {
+        return 5;
+    }
+
+    return 2;
+}
+
+function werkTemperamentVoorbeeldBij() {
+    const slider =
+        haalElementOp("invoer-temperament");
+
+    const voorbeeld =
+        haalElementOp("temperament-voorbeeld");
+
+    if (!slider || !voorbeeld) {
+        return;
+    }
+
+    voorbeeld.textContent =
+        maakTemperamentTekst(slider.value);
 }
 
 function zetTekst(id, tekst) {
@@ -349,6 +527,283 @@ function maakDatumTekst() {
         }
     ).format(new Date());
 }
+function maakIsoDatum(datum) {
+    const jaar = datum.getFullYear();
+
+    const maand = String(
+        datum.getMonth() + 1
+    ).padStart(2, "0");
+
+    const dag = String(
+        datum.getDate()
+    ).padStart(2, "0");
+
+    return `${jaar}-${maand}-${dag}`;
+}
+
+function voegDagenToe(datum, aantalDagen) {
+    const nieuweDatum = new Date(datum);
+
+    nieuweDatum.setDate(
+        nieuweDatum.getDate() + aantalDagen
+    );
+
+    return nieuweDatum;
+}
+
+function formatteerIsoDatum(isoDatum) {
+    if (!isoDatum) {
+        return "Nog niet bepaald";
+    }
+
+    const onderdelen = isoDatum.split("-");
+
+    if (onderdelen.length !== 3) {
+        return "Nog niet bepaald";
+    }
+
+    const datum = new Date(
+        Number(onderdelen[0]),
+        Number(onderdelen[1]) - 1,
+        Number(onderdelen[2])
+    );
+
+    return new Intl.DateTimeFormat(
+        "nl-NL",
+        {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }
+    ).format(datum);
+}
+
+function berekenControleAdvies(kast) {
+    const maand = new Date().getMonth() + 1;
+
+    let dagen;
+    let reden;
+
+    if (maand === 3 || maand === 4) {
+        dagen = 10;
+        reden = "Voorjaarscontrole";
+    } else if (maand === 5 || maand === 6) {
+        dagen = 7;
+        reden = "Snelle ontwikkeling en zwermperiode";
+    } else if (maand === 7 || maand === 8) {
+        dagen = 9;
+        reden = "Actief zomerseizoen";
+    } else if (maand === 9 || maand === 10) {
+        dagen = 18;
+        reden = "Rustigere herfstperiode";
+    } else {
+        dagen = 30;
+        reden =
+            "Winterperiode: alleen buitenzijde, gewicht en vliegopening controleren";
+    }
+
+    function verkortAdvies(
+        nieuwAantalDagen,
+        nieuweReden
+    ) {
+        if (nieuwAantalDagen < dagen) {
+            dagen = nieuwAantalDagen;
+            reden = nieuweReden;
+        }
+    }
+
+    if (kast.ruimte === "Extra ruimte nodig") {
+        verkortAdvies(
+            3,
+            "De kast heeft extra ruimte nodig"
+        );
+    }
+
+    if (kast.ruimte === "Bijna vol") {
+        verkortAdvies(
+            5,
+            "De beschikbare ruimte raakt op"
+        );
+    }
+
+    if (kast.koningin === "Geen bewijs") {
+        verkortAdvies(
+            3,
+            "Geen koningin, eitjes of jong broed gevonden"
+        );
+    }
+
+    if (kast.voer === "Bijvoeren nodig") {
+        verkortAdvies(
+            3,
+            "Bijvoeren is nodig"
+        );
+    }
+
+    if (kast.voer === "Laag") {
+        verkortAdvies(
+            5,
+            "De voervoorraad is laag"
+        );
+    }
+
+    if (kast.varroa === "Behandeling nodig") {
+        verkortAdvies(
+            3,
+            "Een varroabehandeling is nodig"
+        );
+    }
+
+    if (kast.varroa === "Meting nodig") {
+        verkortAdvies(
+            5,
+            "Een varroameting is nodig"
+        );
+    }
+
+    if (kast.broed === "Onregelmatig") {
+        verkortAdvies(
+            5,
+            "Het broedpatroon is onregelmatig"
+        );
+    }
+
+    if (kast.broed === "Geen broed") {
+        verkortAdvies(
+            3,
+            "Er is geen broed gevonden"
+        );
+    }
+
+    return {
+        dagen: dagen,
+        reden: reden
+    };
+}
+
+function maakControleTermijnTekst(isoDatum) {
+    if (!isoDatum) {
+        return "Nog geen controle gepland";
+    }
+
+    const onderdelen = isoDatum.split("-");
+
+    const controleDatum = new Date(
+        Number(onderdelen[0]),
+        Number(onderdelen[1]) - 1,
+        Number(onderdelen[2])
+    );
+
+    const vandaag = new Date();
+
+    vandaag.setHours(0, 0, 0, 0);
+    controleDatum.setHours(0, 0, 0, 0);
+
+    const verschil = Math.round(
+        (
+            controleDatum.getTime() -
+            vandaag.getTime()
+        ) /
+        (1000 * 60 * 60 * 24)
+    );
+
+    if (verschil === 0) {
+        return "Vandaag controleren";
+    }
+
+    if (verschil === 1) {
+        return "Morgen controleren";
+    }
+
+    if (verschil > 1) {
+        return `Over ${verschil} dagen controleren`;
+    }
+
+    if (verschil === -1) {
+        return "Controle is 1 dag te laat";
+    }
+
+    return `Controle is ${Math.abs(verschil)} dagen te laat`;
+}
+function leesNederlandseDatum(datumTekst) {
+    if (
+        !datumTekst ||
+        datumTekst === "Nog niet gecontroleerd"
+    ) {
+        return null;
+    }
+
+    const maanden = {
+        januari: 0,
+        februari: 1,
+        maart: 2,
+        april: 3,
+        mei: 4,
+        juni: 5,
+        juli: 6,
+        augustus: 7,
+        september: 8,
+        oktober: 9,
+        november: 10,
+        december: 11
+    };
+
+    const onderdelen = datumTekst
+        .toLowerCase()
+        .trim()
+        .split(/\s+/);
+
+    if (onderdelen.length !== 3) {
+        return null;
+    }
+
+    const dag = Number(onderdelen[0]);
+    const maand = maanden[onderdelen[1]];
+    const jaar = Number(onderdelen[2]);
+
+    if (
+        !Number.isFinite(dag) ||
+        maand === undefined ||
+        !Number.isFinite(jaar)
+    ) {
+        return null;
+    }
+
+    return new Date(jaar, maand, dag);
+}
+
+function berekenDagenGeleden(datumTekst) {
+    const controleDatum =
+        leesNederlandseDatum(datumTekst);
+
+    if (!controleDatum) {
+        return "-";
+    }
+
+    const vandaag = new Date();
+
+    vandaag.setHours(0, 0, 0, 0);
+    controleDatum.setHours(0, 0, 0, 0);
+
+    const verschilInMilliseconden =
+        vandaag.getTime() -
+        controleDatum.getTime();
+
+    const verschilInDagen = Math.floor(
+        verschilInMilliseconden /
+        (1000 * 60 * 60 * 24)
+    );
+
+    if (verschilInDagen <= 0) {
+        return "Vandaag";
+    }
+
+    if (verschilInDagen === 1) {
+        return "Gisteren";
+    }
+
+    return `${verschilInDagen} dagen geleden`;
+}
 
 function maakVeiligeTekst(tekst) {
     const tijdelijkElement =
@@ -359,7 +814,69 @@ function maakVeiligeTekst(tekst) {
 
     return tijdelijkElement.innerHTML;
 }
+function bepaalKoninginJaarOpKleur(kleur) {
+    const huidigJaar = new Date().getFullYear();
 
+    const eindcijfersPerKleur = {
+        wit: [1, 6],
+        geel: [2, 7],
+        rood: [3, 8],
+        groen: [4, 9],
+        blauw: [0, 5]
+    };
+
+    const toegestaneEindcijfers =
+        eindcijfersPerKleur[kleur];
+
+    if (!toegestaneEindcijfers) {
+        return null;
+    }
+
+    /*
+     * We zoeken vanaf het huidige jaar terug.
+     * Zes jaar is ruim voldoende omdat de kleurcyclus
+     * iedere vijf jaar opnieuw begint.
+     */
+    for (
+        let jaar = huidigJaar;
+        jaar >= huidigJaar - 6;
+        jaar--
+    ) {
+        const laatsteCijfer = jaar % 10;
+
+        if (
+            toegestaneEindcijfers.includes(
+                laatsteCijfer
+            )
+        ) {
+            return jaar;
+        }
+    }
+
+    return null;
+}
+
+function maakKoninginMarkeringTekst(kleur) {
+    if (
+        !kleur ||
+        kleur === "niet-gemarkeerd"
+    ) {
+        return "Niet gemarkeerd";
+    }
+
+    const jaar =
+        bepaalKoninginJaarOpKleur(kleur);
+
+    const kleurMetHoofdletter =
+        kleur.charAt(0).toUpperCase() +
+        kleur.slice(1);
+
+    if (!jaar) {
+        return `${kleurMetHoofdletter} gemarkeerd`;
+    }
+
+    return `${kleurMetHoofdletter} gemarkeerd (${jaar})`;
+}
 
 // ========================================
 // HOMEPAGINA EN KASTENOVERZICHT
@@ -495,9 +1012,11 @@ function vulKastdetail(kast) {
         kast.laatsteControle
     );
     zetTekst(
-        "detail-dagen-geleden",
-        kast.dagenGeleden
-    );
+    "detail-dagen-geleden",
+    berekenDagenGeleden(
+        kast.laatsteControle
+    )
+);
 
     zetTekst("detail-seizoen", actiefSeizoen);
     zetTekst("acties-seizoen", actiefSeizoen);
@@ -528,10 +1047,18 @@ function vulKastdetail(kast) {
         kast.honingkamers
     );
 
+zetTekst(
+    "detail-volgende-actie",
+    maakControleTermijnTekst(
+        kast.volgendeControleDatum
+    )
+);
+
     zetTekst(
-        "detail-volgende-actie",
-        kast.volgendeActie
-    );
+    "detail-controle-reden",
+    kast.controleAdviesReden ||
+        "Geen reden geregistreerd"
+);
 
     zetTekst(
         "controle-datum",
@@ -539,9 +1066,13 @@ function vulKastdetail(kast) {
     );
 
     zetTekst(
-        "controle-temperament",
-        kast.temperament
-    );
+    "controle-temperament",
+    kast.temperamentScore
+        ? maakTemperamentTekst(
+            kast.temperamentScore
+        )
+        : kast.temperament
+);
 
     zetTekst(
         "controle-notities",
@@ -554,13 +1085,10 @@ function vulKastdetail(kast) {
     );
 
     zetTekst(
-        "detail-bakken",
-        kast.bakken
-    );
-
-    zetTekst(
-        "detail-koninginkleur",
-        kast.koninginkleur
+    "detail-koningin-markering",
+    maakKoninginMarkeringTekst(
+        kast.koninginMarkering
+    )
     );
 
     zetTekst(
@@ -574,6 +1102,30 @@ function vulKastdetail(kast) {
             ? "Ja"
             : "Nog niet"
     );
+    zetTekst(
+    "detail-ramen-bezet",
+    kast.ramenBezet
+);
+
+zetTekst(
+    "detail-ramen-brias",
+    kast.ramenBrias
+);
+
+zetTekst(
+    "detail-aantal-ramen-bezet",
+    kast.ramenPerBroedkamer || 11
+);
+
+zetTekst(
+    "detail-aantal-ramen-brias",
+    kast.ramenPerBroedkamer || 11
+);
+
+zetTekst(
+    "detail-broedkamers",
+    kast.broedkamers
+);
 
     const aantalOogstramen =
         seizoen.honingRamenGeoogst || 0;
@@ -672,6 +1224,25 @@ function openControleFormulier() {
         kast.ramenBrias
     );
 
+const maximaalAantalRamen =
+    kast.ramenPerBroedkamer || 11;
+
+const ramenBezetInvoer =
+    haalElementOp("invoer-ramen-bezet");
+
+const ramenBriasInvoer =
+    haalElementOp("invoer-ramen-brias");
+
+if (ramenBezetInvoer) {
+    ramenBezetInvoer.max =
+        maximaalAantalRamen;
+}
+
+if (ramenBriasInvoer) {
+    ramenBriasInvoer.max =
+        maximaalAantalRamen;
+}
+
     stelInvoerWaardeIn(
         "invoer-broedkamers",
         kast.broedkamers
@@ -726,10 +1297,35 @@ function openControleFormulier() {
         ""
     );
 
-    stelInvoerWaardeIn(
-        "invoer-volgende-actie",
-        kast.volgendeActie
+const temperamentScore =
+    kast.temperamentScore ||
+    maakTemperamentScore(
+        kast.temperament
     );
+
+stelInvoerWaardeIn(
+    "invoer-temperament",
+    temperamentScore
+);
+
+werkTemperamentVoorbeeldBij();    
+
+const automatischCheckbox =
+    haalElementOp(
+        "invoer-automatisch-advies"
+    );
+
+if (automatischCheckbox) {
+    automatischCheckbox.checked =
+        kast.automatischControleAdvies !== false;
+}
+
+stelInvoerWaardeIn(
+    "invoer-volgende-controle",
+    kast.volgendeControleDatum || ""
+);
+
+werkControleAdviesBij();
 
     verbergScherm("kast-detail");
     toonScherm("controle-formulier-scherm");
@@ -819,6 +1415,21 @@ function slaControleOp(event) {
             kast.varroa
         );
 
+const temperamentScore =
+    Number(
+        leesInvoerWaarde(
+            "invoer-temperament",
+            2
+        )
+    );
+
+kast.temperamentScore =
+    temperamentScore;
+
+kast.temperament =
+    maakTemperamentTekst(
+        temperamentScore
+    );
     const nieuweNotities =
         leesInvoerWaarde(
             "invoer-notities",
@@ -829,15 +1440,49 @@ function slaControleOp(event) {
         nieuweNotities ||
         "Geen notities toegevoegd.";
 
-    const volgendeActie =
-        leesInvoerWaarde(
-            "invoer-volgende-actie",
-            ""
-        ).trim();
+const automatischCheckbox =
+    haalElementOp(
+        "invoer-automatisch-advies"
+    );
 
-    kast.volgendeActie =
-        volgendeActie ||
-        "Nog geen volgende actie bepaald.";
+kast.automatischControleAdvies =
+    automatischCheckbox
+        ? automatischCheckbox.checked
+        : true;
+
+const gekozenControleDatum =
+    leesInvoerWaarde(
+        "invoer-volgende-controle",
+        ""
+    );
+
+if (kast.automatischControleAdvies) {
+    const advies =
+        berekenControleAdvies(kast);
+
+    kast.volgendeControleDatum =
+        maakIsoDatum(
+            voegDagenToe(
+                new Date(),
+                advies.dagen
+            )
+        );
+
+    kast.controleAdviesDagen =
+        advies.dagen;
+
+    kast.controleAdviesReden =
+        advies.reden;
+} else {
+    kast.volgendeControleDatum =
+        gekozenControleDatum;
+
+    kast.controleAdviesDagen =
+        null;
+
+    kast.controleAdviesReden =
+        "Handmatig ingestelde controledatum";
+}
 
     const honingCheckbox =
         haalElementOp(
@@ -911,7 +1556,6 @@ function slaControleOp(event) {
     kast.laatsteControle =
         maakDatumTekst();
 
-    kast.dagenGeleden = "Vandaag";
 
     if (!Array.isArray(kast.historie)) {
         kast.historie = [];
@@ -955,7 +1599,97 @@ function leesGetal(id, standaardWaarde = 0) {
         ? getal
         : standaardWaarde;
 }
+function werkControleAdviesBij() {
+    const kast = haalActieveKastOp();
 
+    if (!kast) {
+        return;
+    }
+
+    const automatischCheckbox =
+        haalElementOp(
+            "invoer-automatisch-advies"
+        );
+
+    const datumInvoer =
+        haalElementOp(
+            "invoer-volgende-controle"
+        );
+
+    const uitleg =
+        haalElementOp(
+            "controle-advies-voorbeeld"
+        );
+
+    if (
+        !automatischCheckbox ||
+        !datumInvoer ||
+        !uitleg
+    ) {
+        return;
+    }
+
+    if (!automatischCheckbox.checked) {
+        datumInvoer.disabled = false;
+
+        uitleg.textContent =
+            "De datum wordt handmatig ingesteld.";
+
+        return;
+    }
+
+    const tijdelijkeKast = {
+        ...kast,
+
+        koningin:
+            leesInvoerWaarde(
+                "invoer-koningin",
+                kast.koningin
+            ),
+
+        broed:
+            leesInvoerWaarde(
+                "invoer-broed",
+                kast.broed
+            ),
+
+        voer:
+            leesInvoerWaarde(
+                "invoer-voer",
+                kast.voer
+            ),
+
+        varroa:
+            leesInvoerWaarde(
+                "invoer-varroa",
+                kast.varroa
+            ),
+
+        ruimte:
+            leesInvoerWaarde(
+                "invoer-ruimte",
+                kast.ruimte
+            )
+    };
+
+    const advies =
+        berekenControleAdvies(
+            tijdelijkeKast
+        );
+
+    datumInvoer.value =
+        maakIsoDatum(
+            voegDagenToe(
+                new Date(),
+                advies.dagen
+            )
+        );
+
+    datumInvoer.disabled = true;
+
+    uitleg.textContent =
+        `${advies.reden}. Advies: over ${advies.dagen} dagen.`;
+}
 
 // ========================================
 // CONTROLEHISTORIE
@@ -1091,7 +1825,62 @@ function vulInstellingenFormulier(kastId) {
         (item) =>
             item.id === Number(kastId)
     );
+    const seizoen =
+    haalSeizoensgegevensOp(kast);
 
+stelInvoerWaardeIn(
+    "instellingen-apifonda",
+    seizoen.apifondaZakken || 0
+);
+stelInvoerWaardeIn(
+    "instellingen-aantal-ramen",
+    kast.ramenPerBroedkamer || 11
+);
+stelInvoerWaardeIn(
+    "instellingen-suikerwater",
+    seizoen.suikerwaterLiter || 0
+);
+
+stelInvoerWaardeIn(
+    "instellingen-honingramen",
+    seizoen.honingRamenGeoogst || 0
+);
+
+stelInvoerWaardeIn(
+    "instellingen-laatste-voeractie",
+    seizoen.laatsteVoeractie || ""
+);
+
+stelInvoerWaardeIn(
+    "instellingen-laatste-behandeling",
+    seizoen.laatsteBehandeling || ""
+);
+
+stelInvoerWaardeIn(
+    "instellingen-kasttype",
+    kast.kasttype || "Spaarkast"
+);
+
+stelInvoerWaardeIn(
+    "instellingen-koningin-markering",
+    kast.koninginMarkering ||
+        "niet-gemarkeerd"
+);
+
+stelInvoerWaardeIn(
+    "instellingen-herkomst",
+    kast.herkomst || ""
+);
+
+const honingGeoogstCheckbox =
+    haalElementOp(
+        "instellingen-honing-geoogst"
+    );
+
+if (honingGeoogstCheckbox) {
+    honingGeoogstCheckbox.checked =
+        Boolean(seizoen.honingGeoogst);
+}
     if (!kast) {
         return;
     }
@@ -1373,7 +2162,70 @@ function slaKastInstellingenOp(event) {
     kast.naam = nieuweNaam;
     kast.locatie = nieuweLocatie;
     kast.foto = tijdelijkeKastFoto;
+    kast.ramenPerBroedkamer =
+    leesGetal(
+        "instellingen-aantal-ramen",
+        11
+    );
+    kast.kasttype =
+    leesInvoerWaarde(
+        "instellingen-kasttype",
+        "Spaarkast"
+    );
 
+kast.koninginMarkering =
+    leesInvoerWaarde(
+        "instellingen-koningin-markering",
+        "niet-gemarkeerd"
+    );
+
+kast.herkomst =
+    leesInvoerWaarde(
+        "instellingen-herkomst",
+        ""
+    ).trim() || "Niet ingevuld";
+const seizoen =
+    haalSeizoensgegevensOp(kast);
+
+seizoen.apifondaZakken =
+    leesGetal(
+        "instellingen-apifonda",
+        0
+    );
+
+seizoen.suikerwaterLiter =
+    leesGetal(
+        "instellingen-suikerwater",
+        0
+    );
+
+seizoen.honingRamenGeoogst =
+    leesGetal(
+        "instellingen-honingramen",
+        0
+    );
+
+const honingGeoogstCheckbox =
+    haalElementOp(
+        "instellingen-honing-geoogst"
+    );
+
+seizoen.honingGeoogst =
+    honingGeoogstCheckbox
+        ? honingGeoogstCheckbox.checked
+        : false;
+
+seizoen.laatsteVoeractie =
+    leesInvoerWaarde(
+        "instellingen-laatste-voeractie",
+        ""
+    ).trim() || "Nog niet geregistreerd";
+
+seizoen.laatsteBehandeling =
+    leesInvoerWaarde(
+        "instellingen-laatste-behandeling",
+        ""
+    ).trim() || "Geen behandeling geregistreerd";
     bewaarGegevens();
     toonKastenOverzicht();
 
@@ -1383,6 +2235,7 @@ function slaKastInstellingenOp(event) {
 
     sluitInstellingen();
 }
+
 
 // ========================================
 // KAST VERWIJDEREN
@@ -1454,7 +2307,218 @@ function verwijderGeselecteerdeKast() {
         `"${kast.naam}" is verwijderd.`
     );
 }
+// ========================================
+// BACK-UP DOWNLOADEN
+// ========================================
 
+function exporteerGegevens() {
+    const backUp = {
+        app: "Bijen Controle App",
+        versie: 1,
+        exportDatum: new Date().toISOString(),
+        actiefSeizoen: actiefSeizoen,
+        bijenkasten: bijenkasten
+    };
+
+    const jsonTekst = JSON.stringify(
+        backUp,
+        null,
+        2
+    );
+
+    const bestand = new Blob(
+        [jsonTekst],
+        {
+            type: "application/json"
+        }
+    );
+
+    const downloadUrl =
+        URL.createObjectURL(bestand);
+
+    const datum =
+        new Date()
+            .toISOString()
+            .slice(0, 10);
+
+    const downloadLink =
+        document.createElement("a");
+
+    downloadLink.href = downloadUrl;
+
+    downloadLink.download =
+        `bijen-controle-backup-${datum}.json`;
+
+    document.body.appendChild(
+        downloadLink
+    );
+
+    downloadLink.click();
+    downloadLink.remove();
+
+    URL.revokeObjectURL(
+        downloadUrl
+    );
+}
+
+
+// ========================================
+// BACK-UP TERUGZETTEN
+// ========================================
+
+function importeerGegevens(event) {
+    const bestand =
+        event.target.files[0];
+
+    if (!bestand) {
+        return;
+    }
+
+    const lezer = new FileReader();
+
+    lezer.addEventListener(
+        "load",
+        function () {
+            try {
+                const inhoud =
+                    JSON.parse(lezer.result);
+
+                const nieuweKasten =
+                    Array.isArray(inhoud)
+                        ? inhoud
+                        : inhoud.bijenkasten;
+
+                if (!Array.isArray(nieuweKasten)) {
+                    throw new Error(
+                        "Geen geldige lijst met bijenkasten gevonden."
+                    );
+                }
+
+                const bevestiging = confirm(
+                    "Weet je zeker dat je deze back-up wilt terugzetten?\n\n" +
+                    "Je huidige gegevens worden hierdoor vervangen."
+                );
+
+                if (!bevestiging) {
+                    event.target.value = "";
+                    return;
+                }
+
+                bijenkasten =
+                    maakKopie(nieuweKasten);
+
+                if (
+                    inhoud.actiefSeizoen &&
+                    Number.isFinite(
+                        Number(inhoud.actiefSeizoen)
+                    )
+                ) {
+                    actiefSeizoen =
+                        Number(inhoud.actiefSeizoen);
+                }
+
+                actieveKastId = null;
+
+                bewaarGegevens();
+                toonKastenOverzicht();
+                sluitInstellingen();
+
+                verbergScherm("kast-detail");
+                verbergScherm(
+                    "controle-formulier-scherm"
+                );
+                toonScherm("kasten-overzicht");
+
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+
+                alert(
+                    "De back-up is succesvol teruggezet."
+                );
+            } catch (fout) {
+                console.error(
+                    "Importeren mislukt:",
+                    fout
+                );
+
+                alert(
+                    "Dit bestand is geen geldige back-up van de Bijen Controle App."
+                );
+            } finally {
+                event.target.value = "";
+            }
+        }
+    );
+
+    lezer.addEventListener(
+        "error",
+        function () {
+            alert(
+                "Het back-upbestand kon niet worden gelezen."
+            );
+
+            event.target.value = "";
+        }
+    );
+
+    lezer.readAsText(bestand);
+}
+
+
+// ========================================
+// ALLE GEGEVENS WISSEN
+// ========================================
+
+function wisAlleGegevens() {
+    const eersteBevestiging = confirm(
+        "Weet je zeker dat je ALLE gegevens wilt wissen?\n\n" +
+        "Alle kasten, foto's, controles en seizoensgegevens worden verwijderd."
+    );
+
+    if (!eersteBevestiging) {
+        return;
+    }
+
+    const tweedeBevestiging = confirm(
+        "Dit kan niet ongedaan worden gemaakt.\n\n" +
+        "Klik alleen op OK als je eerst een back-up hebt gemaakt."
+    );
+
+    if (!tweedeBevestiging) {
+        return;
+    }
+
+    localStorage.removeItem(
+        opslagNaam
+    );
+
+    bijenkasten =
+        maakKopie(standaardBijenkasten);
+
+    actieveKastId = null;
+    tijdelijkeKastFoto = null;
+
+    bewaarGegevens();
+    toonKastenOverzicht();
+    sluitInstellingen();
+
+    verbergScherm("kast-detail");
+    verbergScherm(
+        "controle-formulier-scherm"
+    );
+    toonScherm("kasten-overzicht");
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+    alert(
+        "Alle gegevens zijn gewist. De standaardkasten zijn opnieuw geladen."
+    );
+}
 // ========================================
 // KNOPPEN ACTIVEREN
 // ========================================
@@ -1473,6 +2537,11 @@ function activeerKnop(
         );
     }
 }
+activeerKnop(
+    "invoer-temperament",
+    "input",
+    werkTemperamentVoorbeeldBij
+);
 
 function activeerKnoppen() {
     activeerKnop(
@@ -1493,6 +2562,25 @@ function activeerKnoppen() {
             });
         }
     );
+    [
+    "invoer-koningin",
+    "invoer-broed",
+    "invoer-voer",
+    "invoer-varroa",
+    "invoer-ruimte"
+].forEach((id) => {
+    activeerKnop(
+        id,
+        "change",
+        werkControleAdviesBij
+    );
+});
+
+activeerKnop(
+    "invoer-automatisch-advies",
+    "change",
+    werkControleAdviesBij
+);
 
     activeerKnop(
     "kast-verwijderen-knop",
@@ -1549,7 +2637,23 @@ function activeerKnoppen() {
             );
         }
     );
+    activeerKnop(
+    "gegevens-exporteren-knop",
+    "click",
+    exporteerGegevens
+);
 
+    activeerKnop(
+    "gegevens-importeren-bestand",
+    "change",
+    importeerGegevens
+);
+
+    activeerKnop(
+    "alle-gegevens-wissen-knop",
+    "click",
+    wisAlleGegevens
+);
     activeerKnop(
         "instellingen-foto",
         "change",
@@ -1650,8 +2754,7 @@ function voegNieuweKastToe() {
             "Deze kast is nieuw toegevoegd.",
 
         kasttype: "Nog invullen",
-        bakken: 1,
-        koninginkleur: "Onbekend",
+        koninginMarkering: "wit",
         herkomst: "Nog invullen",
 
         seizoenen: {

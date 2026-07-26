@@ -641,9 +641,6 @@ summary:focus-visible {
     line-height: 1.3;
 }
 
-.oogst-kaart {
-    grid-column: 1 / -1;
-}
 
 .seizoen-samenvatting {
     padding-top: 15px;
@@ -1161,4 +1158,241 @@ summary:focus-visible {
 
 .kast-verwijderen-knop:active {
     transform: scale(0.98);
+}
+/* ========================================
+   BACK-UP EN GEGEVENS
+======================================== */
+
+.gegevens-sectie {
+    margin-top: 24px;
+    padding: 18px;
+
+    border: 1px solid var(--rand);
+    border-radius: 18px;
+
+    background: var(--zachte-achtergrond);
+}
+
+.gegevens-sectie-kop h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+}
+
+.gegevens-sectie-kop p {
+    margin: 0;
+
+    color: var(--tekst-zacht);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.gegevens-knoppen {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+
+    margin-top: 16px;
+}
+
+.gegevens-knop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 15px;
+
+    border: 1px solid var(--rand);
+    border-radius: 14px;
+
+    background: var(--kaart);
+    color: var(--tekst);
+
+    font: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    text-decoration: none;
+
+    cursor: pointer;
+    box-shadow: 0 5px 14px rgba(52, 48, 30, 0.05);
+}
+
+.gegevens-knop:hover {
+    background: var(--geel-licht);
+}
+
+.gegevens-knop:active {
+    transform: scale(0.985);
+}
+
+.import-knop {
+    position: relative;
+    overflow: hidden;
+}
+
+.import-knop input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.gegevens-wissen-knop {
+    border-color: #e7aaa6;
+    background: #fff4f3;
+    color: var(--rood);
+}
+
+.gegevens-wissen-knop:hover {
+    background: #fde5e3;
+}
+
+.gegevens-waarschuwing {
+    margin: 12px 2px 0;
+
+    color: var(--tekst-zacht);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+@media (min-width: 600px) {
+    .gegevens-knoppen {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .gegevens-wissen-knop {
+        grid-column: 1 / -1;
+    }
+}
+.verwijder-sectie {
+    margin-top: 24px;
+}
+.seizoen-instellingen {
+    margin-top: 22px;
+}
+
+.instellingen-uitleg {
+    margin: -8px 0 16px;
+    color: var(--tekst-zacht);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.kastopbouw-kaart strong,
+.kastopbouw-kaart .status-subtekst {
+    display: block;
+}
+
+.kastopbouw-kaart .status-subtekst {
+    margin-top: 4px;
+}
+/* ========================================
+   AUTOMATISCH CONTROLEADVIES
+======================================== */
+
+.controle-advies-blok {
+    display: grid;
+    gap: 14px;
+}
+
+.advies-voorbeeld {
+    padding: 14px;
+    border: 1px solid #dce9dc;
+    border-radius: 14px;
+    background: var(--groen-licht);
+}
+
+.advies-voorbeeld span {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--groen);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.advies-voorbeeld strong {
+    display: block;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.actie-reden {
+    display: block;
+    margin-top: 4px;
+    color: var(--groen);
+    font-size: 12px;
+    line-height: 1.4;
+}
+/* ========================================
+   TEMPERAMENT SLIDER
+======================================== */
+
+.temperament-blok {
+    display: grid;
+    gap: 12px;
+    padding: 14px 18px;
+    border: 1px solid var(--rand);
+    border-radius: 14px;
+    background: var(--zachte-achtergrond);
+}
+
+.temperament-schaal-wrapper {
+    --slider-knop: 18px;
+
+    position: relative;
+    padding-top: 38px;
+    padding-bottom: 28px;
+}
+
+#invoer-temperament {
+    display: block;
+    width: 100%;
+    margin: 0;
+}
+
+.temperament-koppen,
+.temperament-schaal {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 24px;
+}
+
+.temperament-koppen {
+    top: 0;
+}
+
+.temperament-schaal {
+    bottom: 0;
+}
+
+.temperament-koppen span,
+.temperament-schaal span {
+    position: absolute;
+
+    left: calc(
+        (100% - var(--slider-knop)) * var(--positie)
+        + (var(--slider-knop) / 2)
+    );
+
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.temperament-koppen span {
+    font-size: 22px;
+}
+
+.temperament-schaal span {
+    color: var(--tekst-zacht);
+    font-size: 12px;
+}
+
+#temperament-voorbeeld {
+    display: block;
+    text-align: center;
+    font-size: 15px;
 }

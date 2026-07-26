@@ -59,8 +59,6 @@
 
 </section>
 
-        </section>
-
         <!-- Detailpagina van de gekozen bijenkast -->
         <section id="kast-detail" class="hidden">
 
@@ -147,7 +145,7 @@
     </article>
 
     <article class="status-kaart">
-        <span class="status-icoon">🐣</span>
+        <span class="status-icoon">🥚</span>
 
         <div>
             <span class="status-titel">Broed</span>
@@ -161,42 +159,46 @@
         <div>
             <span class="status-titel">Ramen bezet</span>
             <strong>
-                <span id="detail-ramen-bezet">9</span> van 11
-            </strong>
+    <span id="detail-ramen-bezet">9</span>
+    van
+    <span id="detail-aantal-ramen-bezet">11</span>
+</strong>
         </div>
     </article>
 
     <article class="status-kaart">
-        <span class="status-icoon">🥚</span>
+        <span class="status-icoon">🐣</span>
 
         <div>
             <span class="status-titel">Ramen BRIAS</span>
             <strong>
-                <span id="detail-ramen-brias">7</span> van 11
-            </strong>
+    <span id="detail-ramen-brias">7</span>
+    van
+    <span id="detail-aantal-ramen-brias">11</span>
+</strong>
         </div>
     </article>
 
+<article class="status-kaart kastopbouw-kaart">
+    <span class="status-icoon">🏠</span>
+
+    <div>
+        <span class="status-titel">Kastopbouw</span>
+
+        <strong>
+            <span id="detail-broedkamers">1</span>
+            broedkamer(s)
+        </strong>
+
+        <span class="status-subtekst">
+            <span id="detail-honingkamers">0</span>
+            honingkamer(s)
+        </span>
+    </div>
+</article>
+
     <article class="status-kaart">
-        <span class="status-icoon">🏠</span>
-
-        <div>
-            <span class="status-titel">Broedkamers</span>
-            <strong id="detail-broedkamers">1</strong>
-        </div>
-    </article>
-
-    <article class="status-kaart">
-        <span class="status-icoon">🍯</span>
-
-        <div>
-            <span class="status-titel">Honingkamers</span>
-            <strong id="detail-honingkamers">1</strong>
-        </div>
-    </article>
-
-    <article class="status-kaart">
-        <span class="status-icoon">🥫</span>
+        <span class="status-icoon">🥞</span>
 
         <div>
             <span class="status-titel">Voer in kast</span>
@@ -205,7 +207,7 @@
     </article>
 
     <article class="status-kaart">
-        <span class="status-icoon">🔬</span>
+        <span class="status-icoon">🪲</span>
 
         <div>
             <span class="status-titel">Varroa</span>
@@ -216,7 +218,7 @@
     </article>
 
     <article class="status-kaart">
-        <span class="status-icoon">📦</span>
+        <span class="status-icoon">🏘️</span>
 
         <div>
             <span class="status-titel">Ruimte</span>
@@ -226,42 +228,52 @@
         </div>
     </article>
 
-    <article class="status-kaart oogst-kaart">
-        <span class="status-icoon">🪣</span>
+<article class="status-kaart">
+    <span class="status-icoon">🍯</span>
 
-        <div>
-            <span class="status-titel">Honing meegenomen</span>
-            <strong id="detail-honing-oogst">
-                Nog niet
-            </strong>
+    <div>
+        <span class="status-titel">Honing meegenomen</span>
 
-            <span
-                id="detail-oogst-ramen"
-                class="status-subtekst"
-            >
-                0 ramen dit seizoen
-            </span>
-        </div>
-    </article>
+        <strong id="detail-honing-oogst">
+            Nog niet
+        </strong>
 
-            </section>
+        <span
+            id="detail-oogst-ramen"
+            class="status-subtekst"
+        >
+            0 ramen dit seizoen
+        </span>
+    </div>
+</article>
 
-            <!-- Volgende actie -->
-            <article class="actie-kaart">
+</div>
+
+</section>
+
+<!-- Volgende actie -->
+<article class="actie-kaart">
 
                 <div class="actie-icoon">
                     ✓
                 </div>
 
                 <div class="actie-inhoud">
-                    <span class="actie-label">
-                        Eerstvolgende actie
-                    </span>
+    <span class="actie-label">
+        Volgende controle
+    </span>
 
-                    <strong id="detail-volgende-actie">
-                        Over één week opnieuw controleren
-                    </strong>
-                </div>
+    <strong id="detail-volgende-actie">
+        Over één week opnieuw controleren
+    </strong>
+
+    <span
+        id="detail-controle-reden"
+        class="actie-reden"
+    >
+        Normale controlefrequentie voor het seizoen
+    </span>
+</div>
 
             </article>
 
@@ -343,23 +355,10 @@
                     <div class="uitklap-inhoud">
 
                         <div class="samenvatting-rij">
-                            <span>Kasttype</span>
-                            <strong id="detail-kasttype">
-                                Spaarkast
-                            </strong>
-                        </div>
+                            <span>Markering koningin</span>
 
-                        <div class="samenvatting-rij">
-                            <span>Aantal bakken</span>
-                            <strong id="detail-bakken">
-                                2
-                            </strong>
-                        </div>
-
-                        <div class="samenvatting-rij">
-                            <span>Koninginkleur</span>
-                            <strong id="detail-koninginkleur">
-                                Wit
+                            <strong id="detail-koningin-markering">
+                                 Wit gemarkeerd (2026)
                             </strong>
                         </div>
 
@@ -651,6 +650,46 @@
             </label>
 
         </div>
+    <label class="invoer-groep">
+        <span>Temperament</span>
+
+<div class="temperament-blok">
+
+    <div class="temperament-schaal-wrapper">
+
+        <div class="temperament-koppen">
+            <span style="--positie: 0">😇</span>
+            <span style="--positie: 0.25">🙂</span>
+            <span style="--positie: 0.5">😐</span>
+            <span style="--positie: 0.75">😠</span>
+            <span style="--positie: 1">😡</span>
+        </div>
+
+        <input
+            id="invoer-temperament"
+            type="range"
+            min="1"
+            max="5"
+            step="1"
+            value="1"
+        >
+
+        <div class="temperament-schaal">
+            <span style="--positie: 0">1</span>
+            <span style="--positie: 0.25">2</span>
+            <span style="--positie: 0.5">3</span>
+            <span style="--positie: 0.75">4</span>
+            <span style="--positie: 1">5</span>
+        </div>
+
+    </div>
+
+    <strong id="temperament-voorbeeld">
+        Zeer rustig
+    </strong>
+
+</div>
+    </label>
 
         <div class="formulier-sectie">
 
@@ -718,29 +757,58 @@
 
         </div>
 
-        <div class="formulier-sectie">
+<div class="formulier-sectie">
 
-            <h3>Notities en vervolg</h3>
+    <h3>Notities en vervolg</h3>
 
-            <label class="invoer-groep">
-                <span>Notities</span>
+    <label class="invoer-groep">
+        <span>Notities</span>
 
-                <textarea
-                    id="invoer-notities"
-                    rows="5"
-                    placeholder="Wat viel op tijdens de controle?"
-                ></textarea>
-            </label>
+        <textarea
+            id="invoer-notities"
+            rows="5"
+            placeholder="Wat viel op tijdens de controle?"
+        ></textarea>
+    </label>
 
-            <label class="invoer-groep">
-                <span>Volgende actie</span>
+    <div class="controle-advies-blok">
 
-                <textarea
-                    id="invoer-volgende-actie"
-                    rows="3"
-                    placeholder="Bijvoorbeeld: over 7 dagen opnieuw controleren"
-                ></textarea>
-            </label>
+    <label class="schakel-rij">
+        <div>
+            <strong>Automatisch controleadvies</strong>
+
+            <span>
+                De app bepaalt een advies op basis van het seizoen
+                en de toestand van de kast.
+            </span>
+        </div>
+
+        <input
+            id="invoer-automatisch-advies"
+            type="checkbox"
+            checked
+        >
+    </label>
+
+    <label class="invoer-groep">
+        <span>Datum volgende controle</span>
+
+        <input
+            id="invoer-volgende-controle"
+            type="date"
+            required
+        >
+    </label>
+
+    <div class="advies-voorbeeld">
+        <span>Reden van het advies</span>
+
+        <strong id="controle-advies-voorbeeld">
+            Wordt automatisch berekend
+        </strong>
+    </div>
+
+</div>
 
         </div>
 
@@ -851,6 +919,207 @@
                     required
                 >
             </label>
+<label class="invoer-groep">
+    <span>Aantal ramen per broedkamer</span>
+
+    <select id="instellingen-aantal-ramen">
+        <option value="10">10 ramen</option>
+        <option value="11">11 ramen</option>
+    </select>
+</label>
+<label class="invoer-groep">
+    <span>Kasttype</span>
+
+    <select id="instellingen-kasttype">
+        <option value="Spaarkast">Spaarkast</option>
+        <option value="Dadant">Dadant</option>
+        <option value="Langstroth">Langstroth</option>
+        <option value="Top Bar Hive">Top Bar Hive</option>
+        <option value="Anders">Anders</option>
+    </select>
+</label>
+
+<label class="invoer-groep">
+    <span>Markering koningin</span>
+
+    <select id="instellingen-koningin-markering">
+        <option value="niet-gemarkeerd">
+            Niet gemarkeerd
+        </option>
+
+        <option value="wit">
+            Wit gemarkeerd
+        </option>
+
+        <option value="geel">
+            Geel gemarkeerd
+        </option>
+
+        <option value="rood">
+            Rood gemarkeerd
+        </option>
+
+        <option value="groen">
+            Groen gemarkeerd
+        </option>
+
+        <option value="blauw">
+            Blauw gemarkeerd
+        </option>
+    </select>
+</label>
+
+<label class="invoer-groep">
+    <span>Herkomst volk</span>
+
+    <input
+        id="instellingen-herkomst"
+        type="text"
+        maxlength="80"
+        placeholder="Bijvoorbeeld: Eigen aflegger"
+    >
+</label>
+
+<div class="formulier-sectie seizoen-instellingen">
+
+    <h3>Seizoenstotalen</h3>
+
+    <p class="instellingen-uitleg">
+        Pas hier de totalen van het actieve seizoen aan.
+    </p>
+
+    <div class="nummer-grid">
+
+        <label class="invoer-groep">
+            <span>Apifonda totaal</span>
+
+            <div class="invoer-met-eenheid">
+                <input
+                    id="instellingen-apifonda"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value="0"
+                >
+
+                <span>zakken</span>
+            </div>
+        </label>
+
+        <label class="invoer-groep">
+            <span>Suikerwater totaal</span>
+
+            <div class="invoer-met-eenheid">
+                <input
+                    id="instellingen-suikerwater"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value="0"
+                >
+
+                <span>liter</span>
+            </div>
+        </label>
+
+    </div>
+
+    <label class="invoer-groep">
+        <span>Honingramen meegenomen</span>
+
+        <input
+            id="instellingen-honingramen"
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+        >
+    </label>
+
+    <label class="schakel-rij">
+        <div>
+            <strong>Honing geoogst</strong>
+
+            <span>
+                Staat er dit seizoen al een oogst geregistreerd?
+            </span>
+        </div>
+
+        <input
+            id="instellingen-honing-geoogst"
+            type="checkbox"
+        >
+    </label>
+
+    <label class="invoer-groep">
+        <span>Laatste voeractie</span>
+
+        <input
+            id="instellingen-laatste-voeractie"
+            type="text"
+            placeholder="Bijvoorbeeld: 10 juli 2026 - 1 zak Apifonda"
+        >
+    </label>
+
+    <label class="invoer-groep">
+        <span>Laatste behandeling</span>
+
+        <input
+            id="instellingen-laatste-behandeling"
+            type="text"
+            placeholder="Bijvoorbeeld: 20 juli 2026 - Oxaalzuur"
+        >
+    </label>
+
+</div>
+<div class="gegevens-sectie">
+
+    <div class="gegevens-sectie-kop">
+        <div>
+            <h3>Back-up en gegevens</h3>
+            <p>
+                Bewaar een kopie van al je kasten, controles,
+                foto's en seizoensgegevens.
+            </p>
+        </div>
+    </div>
+
+    <div class="gegevens-knoppen">
+
+        <button
+            id="gegevens-exporteren-knop"
+            class="gegevens-knop"
+            type="button"
+        >
+            💾 Back-up downloaden
+        </button>
+
+        <label class="gegevens-knop import-knop">
+            📂 Back-up terugzetten
+
+            <input
+                id="gegevens-importeren-bestand"
+                type="file"
+                accept=".json,application/json"
+            >
+        </label>
+
+        <button
+            id="alle-gegevens-wissen-knop"
+            class="gegevens-knop gegevens-wissen-knop"
+            type="button"
+        >
+            ⚠️ Alle gegevens wissen
+        </button>
+
+    </div>
+
+    <p class="gegevens-waarschuwing">
+        Bij het terugzetten van een back-up worden de huidige
+        gegevens vervangen.
+    </p>
+
+</div>
             
 <div class="verwijder-sectie">
     <button
