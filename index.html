@@ -10,6 +10,7 @@
 
     <title>Bijen Controle App</title>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -87,12 +88,24 @@
                         </p>
                     </div>
 
-                    <span
-                        id="detail-status"
-                        class="status-badge status-goed"
-                    >
-                        In orde
-                    </span>
+                    <div class="kast-hoofdkaart-acties">
+                        <span
+                            id="detail-status"
+                            class="status-badge status-goed"
+                        >
+                            In orde
+                        </span>
+
+                        <button
+                            id="kaart-openen-knop"
+                            class="wereldbol-knop"
+                            type="button"
+                            aria-label="Vlieggebied op kaart bekijken"
+                            title="Vlieggebied bekijken"
+                        >
+                            🌍
+                        </button>
+                    </div>
 
                 </div>
 
@@ -464,6 +477,56 @@
             </section>
 
         </section>
+
+<!-- Kaart met vlieggebied -->
+<section id="kast-kaart-scherm" class="hidden">
+    <button id="kaart-terug-knop" class="terug-knop" type="button">
+        ← Terug naar de kast
+    </button>
+
+    <article class="kaart-kop">
+        <div>
+            <p class="kaart-label">Vlieggebied</p>
+            <h2 id="kaart-kastnaam">Kast 1</h2>
+            <p id="kaart-locatienaam">Achtertuin</p>
+        </div>
+        <div class="kaart-kop-icoon" aria-hidden="true">🌍</div>
+    </article>
+
+    <div class="kaart-legenda" aria-label="Vliegafstand tonen">
+        <label><input id="kaart-cirkel-1" type="checkbox" checked><span>1 km</span></label>
+        <label><input id="kaart-cirkel-3" type="checkbox" checked><span>3 km</span></label>
+        <label><input id="kaart-cirkel-5" type="checkbox" checked><span>5 km</span></label>
+    </div>
+
+    <div id="vlieggebied-kaart" class="vlieggebied-kaart" aria-label="Kaart met de standplaats en vliegafstanden"></div>
+
+    <p class="kaart-uitleg">
+        De cirkels tonen een indicatief vlieggebied rond de kast.
+        De werkelijke afstand hangt af van dracht, weer en landschap.
+    </p>
+
+    <section class="dracht-sectie">
+        <div class="dracht-kop">
+            <div>
+                <p class="sectie-label">Drachtkalender</p>
+                <h3>Wat kan er nu in bloei staan?</h3>
+            </div>
+
+            <span id="dracht-maand-badge" class="dracht-maand-badge">Nu</span>
+        </div>
+
+        <p class="dracht-uitleg">
+            Verwachting op basis van de normale Nederlandse bloeiperiode.
+            Dit is geen bevestigde waarneming op deze locatie.
+        </p>
+
+        <div id="dracht-lijst" class="dracht-lijst">
+            <!-- JavaScript vult de mogelijke drachtplanten -->
+        </div>
+    </section>
+</section>
+
 <!-- Nieuwe controle invoeren -->
 <section id="controle-formulier-scherm" class="hidden">
 
@@ -488,7 +551,31 @@
                 Vul de actuele situatie van de kast in.
             </p>
         </div>
+    <div
+    id="controle-weer-kaart"
+    class="controle-weer-kaart"
+>
+    <div
+        id="controle-weer-icoon"
+        class="controle-weer-icoon"
+        aria-hidden="true"
+    >
+        🌦️
+    </div>
 
+    <div class="controle-weer-inhoud">
+        <span>Weer tijdens deze controle</span>
+
+        <strong id="controle-weer-samenvatting">
+            Weergegevens worden opgehaald...
+        </strong>
+
+        <small id="controle-weer-details">
+            Hiervoor wordt de exacte standplaats van de kast gebruikt.
+        </small>
+    </div>
+</div>
+    
         <div class="formulier-sectie">
 
             <h3>Volk en broed</h3>
@@ -822,6 +909,77 @@
     </form>
 
 </section>
+
+<!-- Historische controle bekijken -->
+<section id="historische-controle-scherm" class="hidden">
+
+    <button
+        id="historie-detail-terug-knop"
+        class="terug-knop"
+        type="button"
+    >
+        ← Terug naar de kast
+    </button>
+
+    <div class="formulier-kop historie-detail-kop">
+        <p class="kaart-label">Opgeslagen controle</p>
+        <h2 id="historie-detail-titel">Controle bekijken</h2>
+        <p id="historie-detail-subtitel">Alle gegevens zijn alleen-lezen.</p>
+    </div>
+
+    <div id="historie-detail-weer" class="controle-weer-kaart historie-detail-weer">
+        <div id="historie-detail-weer-icoon" class="controle-weer-icoon">🌦️</div>
+        <div class="controle-weer-inhoud">
+            <span>Weer tijdens deze controle</span>
+            <strong id="historie-detail-weer-samenvatting">Geen weer opgeslagen</strong>
+            <small id="historie-detail-weer-details">-</small>
+        </div>
+    </div>
+
+    <div class="historie-detail-grid">
+        <section class="formulier-sectie">
+            <h3>Volk en broed</h3>
+            <div class="historie-detail-rij"><span>Koningin</span><strong id="historie-detail-koningin">-</strong></div>
+            <div class="historie-detail-rij"><span>Broedbeeld</span><strong id="historie-detail-broed">-</strong></div>
+            <div class="historie-detail-rij"><span>Ramen bezet</span><strong id="historie-detail-ramen-bezet">-</strong></div>
+            <div class="historie-detail-rij"><span>Ramen BRIAS</span><strong id="historie-detail-ramen-brias">-</strong></div>
+            <div class="historie-detail-rij"><span>Temperament</span><strong id="historie-detail-temperament">-</strong></div>
+        </section>
+
+        <section class="formulier-sectie">
+            <h3>Kastopbouw</h3>
+            <div class="historie-detail-rij"><span>Broedkamers</span><strong id="historie-detail-broedkamers">-</strong></div>
+            <div class="historie-detail-rij"><span>Honingkamers</span><strong id="historie-detail-honingkamers">-</strong></div>
+            <div class="historie-detail-rij"><span>Beschikbare ruimte</span><strong id="historie-detail-ruimte">-</strong></div>
+        </section>
+
+        <section class="formulier-sectie">
+            <h3>Voer en gezondheid</h3>
+            <div class="historie-detail-rij"><span>Voer in kast</span><strong id="historie-detail-voer">-</strong></div>
+            <div class="historie-detail-rij"><span>Varroa</span><strong id="historie-detail-varroa">-</strong></div>
+        </section>
+
+        <section class="formulier-sectie">
+            <h3>Oogst en bijvoeren</h3>
+            <div class="historie-detail-rij"><span>Honing meegenomen</span><strong id="historie-detail-honing">-</strong></div>
+            <div class="historie-detail-rij"><span>Honingramen</span><strong id="historie-detail-honingramen">-</strong></div>
+            <div class="historie-detail-rij"><span>Apifonda</span><strong id="historie-detail-apifonda">-</strong></div>
+            <div class="historie-detail-rij"><span>Suikerwater</span><strong id="historie-detail-suikerwater">-</strong></div>
+        </section>
+
+        <section class="formulier-sectie historie-detail-notities">
+            <h3>Notities en vervolg</h3>
+            <div class="historie-detail-rij"><span>Volgende controle</span><strong id="historie-detail-volgende-controle">-</strong></div>
+            <div class="historie-detail-rij"><span>Reden advies</span><strong id="historie-detail-advies-reden">-</strong></div>
+            <div class="historie-detail-notitieblok">
+                <span>Notities</span>
+                <p id="historie-detail-notities">-</p>
+            </div>
+        </section>
+    </div>
+
+</section>
+
 <!-- Instellingenvenster -->
 <section
     id="instellingen-scherm"
@@ -919,6 +1077,64 @@
                     required
                 >
             </label>
+
+<div class="exacte-locatie-blok">
+
+    <div>
+        <h3>Exacte standplaats</h3>
+
+        <p>
+            Vul een adres, postcode of plaats in.
+            De coördinaten worden automatisch opgeslagen.
+        </p>
+    </div>
+
+    <label class="invoer-groep">
+        <span>Adres van de kast</span>
+
+        <input
+            id="instellingen-zoekadres"
+            type="text"
+            maxlength="160"
+            placeholder="Bijvoorbeeld: Markt 1, 4701 PA Roosendaal"
+        >
+    </label>
+
+    <button
+        id="adres-zoeken-knop"
+        class="locatie-knop"
+        type="button"
+    >
+        🔎 Locatie zoeken
+    </button>
+
+    <button
+        id="huidige-locatie-knop"
+        class="locatie-knop"
+        type="button"
+    >
+        📍 Gebruik mijn huidige locatie
+    </button>
+
+    <input
+        id="instellingen-latitude"
+        type="hidden"
+    >
+
+    <input
+        id="instellingen-longitude"
+        type="hidden"
+    >
+
+    <p
+        id="locatie-status"
+        class="locatie-status"
+        aria-live="polite"
+    >
+        Nog geen exacte standplaats ingesteld.
+    </p>
+
+</div>
 <label class="invoer-groep">
     <span>Aantal ramen per broedkamer</span>
 
@@ -1162,6 +1378,7 @@
 
     </main>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

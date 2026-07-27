@@ -11,6 +11,12 @@
 let actiefSeizoen = 2026;
 let actieveKastId = null;
 let tijdelijkeKastFoto = null;
+let tijdelijkeWeerMeting = null;
+let vlieggebiedKaart = null;
+let vlieggebiedMarker = null;
+let vlieggebiedCirkels = {};
+let laatsteAdresZoekTijd = 0;
+let actieveHistorieIndex = null;
 
 const opslagNaam = "bijenControleAppGegevens";
 
@@ -24,6 +30,8 @@ const standaardBijenkasten = [
         id: 1,
         naam: "Kast 1",
         locatie: "Achtertuin",
+        latitude: null,
+        longitude: null,
         foto: null,
         ramenPerBroedkamer: 11,
 
@@ -83,6 +91,8 @@ const standaardBijenkasten = [
         id: 2,
         naam: "Kast 2",
         locatie: "Achtertuin",
+        latitude: null,
+        longitude: null,
         foto: null,
         ramenPerBroedkamer: 10,
 
@@ -142,6 +152,8 @@ const standaardBijenkasten = [
         id: 3,
         naam: "Kast 3",
         locatie: "Weiland",
+        latitude: null,
+        longitude: null,
         foto: null,
         ramenPerBroedkamer: 11,
 
@@ -235,6 +247,14 @@ function laadGegevens() {
                 kast.ramenPerBroedkamer = 11;
             }
 
+            kast.latitude = Number.isFinite(Number(kast.latitude))
+                ? Number(kast.latitude)
+                : null;
+
+            kast.longitude = Number.isFinite(Number(kast.longitude))
+                ? Number(kast.longitude)
+                : null;
+
             if (!kast.temperamentScore) {
     kast.temperamentScore =
         maakTemperamentScore(
@@ -270,6 +290,12 @@ function laadGegevens() {
             if (!Array.isArray(kast.historie)) {
                 kast.historie = [];
             }
+
+            kast.historie.forEach((controle) => {
+                if (!controle.snapshot) {
+                    controle.snapshot = null;
+                }
+            });
 
             if (!kast.volgendeControleDatum) {
                 const advies =
@@ -1093,6 +1119,8 @@ function openKast(kastId) {
 
     verbergScherm("kasten-overzicht");
     verbergScherm("controle-formulier-scherm");
+    verbergScherm("kast-kaart-scherm");
+    verbergScherm("historische-controle-scherm");
     toonScherm("kast-detail");
 
     window.scrollTo({
@@ -1288,6 +1316,833 @@ zetTekst(
 
 
 // ========================================
+// KAART EN VLIEGGEBIED
+// ========================================
+
+function heeftExacteLocatie(kast) {
+    return Boolean(
+        kast &&
+        Number.isFinite(Number(kast.latitude)) &&
+        Number.isFinite(Number(kast.longitude))
+    );
+}
+
+function maakVlieggebiedKaart() {
+    if (vlieggebiedKaart || typeof L === "undefined") {
+        return;
+    }
+
+    vlieggebiedKaart = L.map("vlieggebied-kaart");
+
+    L.tileLayer(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }
+    ).addTo(vlieggebiedKaart);
+}
+
+function werkKaartCirkelsBij() {
+    if (!vlieggebiedKaart) {
+        return;
+    }
+
+    [1, 3, 5].forEach((afstand) => {
+        const checkbox = haalElementOp(`kaart-cirkel-${afstand}`);
+        const cirkel = vlieggebiedCirkels[afstand];
+
+        if (!checkbox || !cirkel) {
+            return;
+        }
+
+        if (checkbox.checked) {
+            if (!vlieggebiedKaart.hasLayer(cirkel)) {
+                cirkel.addTo(vlieggebiedKaart);
+            }
+        } else if (vlieggebiedKaart.hasLayer(cirkel)) {
+            cirkel.remove();
+        }
+    });
+}
+
+function tekenVlieggebied(kast) {
+    maakVlieggebiedKaart();
+
+    if (!vlieggebiedKaart) {
+        alert("De kaart kon niet worden geladen. Controleer je internetverbinding.");
+        return;
+    }
+
+    const middelpunt = [Number(kast.latitude), Number(kast.longitude)];
+
+    Object.values(vlieggebiedCirkels).forEach((cirkel) => cirkel.remove());
+    vlieggebiedCirkels = {};
+
+    if (vlieggebiedMarker) {
+        vlieggebiedMarker.remove();
+    }
+
+    vlieggebiedMarker = L.marker(middelpunt)
+        .addTo(vlieggebiedKaart)
+        .bindPopup(`<strong>${maakVeiligeTekst(kast.naam)}</strong><br>${maakVeiligeTekst(kast.locatie)}`);
+
+    vlieggebiedCirkels[1] = L.circle(middelpunt, {radius: 1000, color: "#47744c", weight: 2, fillColor: "#47744c", fillOpacity: 0.12});
+    vlieggebiedCirkels[3] = L.circle(middelpunt, {radius: 3000, color: "#a96800", weight: 2, fillColor: "#f4bd3f", fillOpacity: 0.08});
+    vlieggebiedCirkels[5] = L.circle(middelpunt, {radius: 5000, color: "#a43f39", weight: 2, fillColor: "#a43f39", fillOpacity: 0.04});
+
+    werkKaartCirkelsBij();
+    vlieggebiedKaart.setView(middelpunt, 12);
+
+    window.setTimeout(() => vlieggebiedKaart.invalidateSize(), 100);
+}
+
+function openKastKaart() {
+    const kast = haalActieveKastOp();
+
+    if (!kast) {
+        return;
+    }
+
+    if (!heeftExacteLocatie(kast)) {
+        alert("Voor deze kast is nog geen exacte standplaats ingesteld. Vul de coördinaten in via Instellingen.");
+        return;
+    }
+
+    zetTekst("kaart-kastnaam", kast.naam);
+    zetTekst("kaart-locatienaam", kast.locatie);
+
+    verbergScherm("kast-detail");
+    verbergScherm("controle-formulier-scherm");
+    toonScherm("kast-kaart-scherm");
+
+    tekenVlieggebied(kast);
+    toonDrachtKalender();
+    window.scrollTo({top: 0, behavior: "smooth"});
+}
+
+function sluitKastKaart() {
+    verbergScherm("kast-kaart-scherm");
+    if (actieveKastId !== null) {
+        toonScherm("kast-detail");
+    }
+}
+async function zoekAdresLocatie() {
+    const adresInvoer =
+        haalElementOp(
+            "instellingen-zoekadres"
+        );
+
+    const status =
+        haalElementOp(
+            "locatie-status"
+        );
+
+    const zoekKnop =
+        haalElementOp(
+            "adres-zoeken-knop"
+        );
+
+    if (!adresInvoer || !status) {
+        return;
+    }
+
+    const zoekAdres =
+        adresInvoer.value.trim();
+
+    if (!zoekAdres) {
+        status.textContent =
+            "Vul eerst een adres, postcode of plaats in.";
+
+        adresInvoer.focus();
+        return;
+    }
+
+    const huidigeTijd = Date.now();
+
+    if (
+        huidigeTijd -
+        laatsteAdresZoekTijd <
+        1000
+    ) {
+        status.textContent =
+            "Wacht één seconde en probeer opnieuw.";
+
+        return;
+    }
+
+    laatsteAdresZoekTijd =
+        huidigeTijd;
+
+    const cacheSleutel =
+        "adresCache:" +
+        zoekAdres.toLowerCase();
+
+    try {
+        const opgeslagenResultaat =
+            localStorage.getItem(
+                cacheSleutel
+            );
+
+        if (opgeslagenResultaat) {
+            const resultaat =
+                JSON.parse(
+                    opgeslagenResultaat
+                );
+
+            verwerkGevondenAdres(
+                resultaat
+            );
+
+            return;
+        }
+    } catch (fout) {
+        console.warn(
+            "Adrescache kon niet worden gelezen:",
+            fout
+        );
+    }
+
+    status.textContent =
+        "Locatie wordt gezocht...";
+
+    if (zoekKnop) {
+        zoekKnop.disabled = true;
+        zoekKnop.textContent =
+            "Bezig met zoeken...";
+    }
+
+    try {
+        const parameters =
+            new URLSearchParams({
+                q: zoekAdres,
+                format: "jsonv2",
+                limit: "1",
+                addressdetails: "1",
+                "accept-language": "nl"
+            });
+
+        const antwoord =
+            await fetch(
+                "https://nominatim.openstreetmap.org/search?" +
+                parameters.toString(),
+                {
+                    headers: {
+                        Accept:
+                            "application/json"
+                    }
+                }
+            );
+
+        if (!antwoord.ok) {
+            throw new Error(
+                `Adres zoeken gaf foutcode ${antwoord.status}`
+            );
+        }
+
+        const resultaten =
+            await antwoord.json();
+
+        if (
+            !Array.isArray(resultaten) ||
+            resultaten.length === 0
+        ) {
+            status.textContent =
+                "Geen locatie gevonden. Voeg een straat, postcode en plaats toe.";
+
+            return;
+        }
+
+        const resultaat =
+            resultaten[0];
+
+        try {
+            localStorage.setItem(
+                cacheSleutel,
+                JSON.stringify(
+                    resultaat
+                )
+            );
+        } catch (fout) {
+            console.warn(
+                "Adresresultaat kon niet worden bewaard:",
+                fout
+            );
+        }
+
+        verwerkGevondenAdres(
+            resultaat
+        );
+    } catch (fout) {
+        console.error(
+            "Adres zoeken mislukt:",
+            fout
+        );
+
+        status.textContent =
+            "Het adres kon niet worden opgezocht. Controleer je internetverbinding.";
+    } finally {
+        if (zoekKnop) {
+            zoekKnop.disabled = false;
+            zoekKnop.textContent =
+                "🔎 Locatie zoeken";
+        }
+    }
+}
+
+function verwerkGevondenAdres(resultaat) {
+    const latitude =
+        Number(resultaat.lat);
+
+    const longitude =
+        Number(resultaat.lon);
+
+    const status =
+        haalElementOp(
+            "locatie-status"
+        );
+
+    if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
+    ) {
+        if (status) {
+            status.textContent =
+                "De gevonden locatie bevat geen geldige coördinaten.";
+        }
+
+        return;
+    }
+
+    stelInvoerWaardeIn(
+        "instellingen-latitude",
+        latitude.toFixed(6)
+    );
+
+    stelInvoerWaardeIn(
+        "instellingen-longitude",
+        longitude.toFixed(6)
+    );
+
+    if (status) {
+        status.textContent =
+            "Gevonden: " +
+            resultaat.display_name;
+    }
+}
+
+function gebruikHuidigeLocatie() {
+    const status = haalElementOp("locatie-status");
+
+    if (!navigator.geolocation) {
+        if (status) status.textContent = "Deze browser ondersteunt geen locatiebepaling.";
+        return;
+    }
+
+    if (status) status.textContent = "Locatie wordt opgehaald...";
+
+    navigator.geolocation.getCurrentPosition(
+        function (positie) {
+            stelInvoerWaardeIn("instellingen-latitude", positie.coords.latitude.toFixed(6));
+            stelInvoerWaardeIn("instellingen-longitude", positie.coords.longitude.toFixed(6));
+            if (status) status.textContent = "Exacte standplaats ingevuld via GPS.";
+        },
+        function (fout) {
+            console.error("Locatie ophalen mislukt:", fout);
+            if (status) status.textContent = "Locatie kon niet worden opgehaald. Vul de coördinaten handmatig in.";
+        },
+        {enableHighAccuracy: true, timeout: 15000, maximumAge: 0}
+    );
+}
+// ========================================
+// DRACHTKALENDER
+// ========================================
+
+const drachtPlanten = [
+    {naam: "Hazelaar", icoon: "🌼", start: 1, einde: 3},
+    {naam: "Krokus", icoon: "🌷", start: 2, einde: 3},
+    {naam: "Wilg", icoon: "🌿", start: 3, einde: 4},
+    {naam: "Paardenbloem", icoon: "🌼", start: 3, einde: 5},
+    {naam: "Fruitbloesem", icoon: "🌸", start: 4, einde: 5},
+    {naam: "Koolzaad", icoon: "💛", start: 4, einde: 6},
+    {naam: "Meidoorn", icoon: "🌸", start: 5, einde: 6},
+    {naam: "Robinia / acacia", icoon: "🤍", start: 5, einde: 6},
+    {naam: "Braam", icoon: "🌿", start: 5, einde: 7},
+    {naam: "Linde", icoon: "🌳", start: 6, einde: 7},
+    {naam: "Witte klaver", icoon: "☘️", start: 5, einde: 9},
+    {naam: "Struikheide", icoon: "🪻", start: 7, einde: 9},
+    {naam: "Klimop", icoon: "🍃", start: 9, einde: 11}
+];
+
+function bepaalDrachtStatus(plant, maand) {
+    if (maand >= plant.start && maand <= plant.einde) {
+        return {
+            status: "Waarschijnlijk in bloei",
+            klasse: "dracht-actief"
+        };
+    }
+
+    if (maand === plant.start - 1) {
+        return {
+            status: "Begint mogelijk binnenkort",
+            klasse: "dracht-binnenkort"
+        };
+    }
+
+    if (maand === plant.einde + 1) {
+        return {
+            status: "Waarschijnlijk net afgelopen",
+            klasse: "dracht-afgelopen"
+        };
+    }
+
+    return null;
+}
+
+function maakMaandNaam(maand) {
+    return new Intl.DateTimeFormat(
+        "nl-NL",
+        {month: "long"}
+    ).format(new Date(2026, maand - 1, 1));
+}
+
+function maakBloeiperiodeTekst(plant) {
+    const startNaam = maakMaandNaam(plant.start);
+    const eindeNaam = maakMaandNaam(plant.einde);
+
+    return plant.start === plant.einde
+        ? startNaam
+        : `${startNaam}–${eindeNaam}`;
+}
+
+function toonDrachtKalender() {
+    const lijst = haalElementOp("dracht-lijst");
+    const badge = haalElementOp("dracht-maand-badge");
+
+    if (!lijst) {
+        return;
+    }
+
+    const maand = new Date().getMonth() + 1;
+
+    if (badge) {
+        badge.textContent = maakMaandNaam(maand);
+    }
+
+    const zichtbarePlanten = drachtPlanten
+        .map((plant) => ({
+            plant,
+            informatie: bepaalDrachtStatus(plant, maand)
+        }))
+        .filter((item) => item.informatie);
+
+    lijst.innerHTML = "";
+
+    if (zichtbarePlanten.length === 0) {
+        lijst.innerHTML = `
+            <p class="lege-melding">
+                Voor deze maand staan geen hoofd-drachtplanten in de kalender.
+            </p>
+        `;
+        return;
+    }
+
+    zichtbarePlanten.forEach(({plant, informatie}) => {
+        const kaart = document.createElement("article");
+        kaart.className = "dracht-kaart";
+        kaart.innerHTML = `
+            <div class="dracht-icoon">${plant.icoon}</div>
+            <div class="dracht-inhoud">
+                <strong>${maakVeiligeTekst(plant.naam)}</strong>
+                <span class="dracht-status ${informatie.klasse}">
+                    ${maakVeiligeTekst(informatie.status)}
+                </span>
+                <small>
+                    Normale bloei: ${maakVeiligeTekst(maakBloeiperiodeTekst(plant))}
+                </small>
+            </div>
+        `;
+        lijst.appendChild(kaart);
+    });
+}
+
+// ========================================
+// WEER TIJDENS CONTROLE
+// ========================================
+
+function maakWeerInformatie(weatherCode) {
+    const code = Number(weatherCode);
+
+    if (code === 0) {
+        return {
+            icoon: "☀️",
+            tekst: "Onbewolkt"
+        };
+    }
+
+    if (code === 1) {
+        return {
+            icoon: "🌤️",
+            tekst: "Overwegend helder"
+        };
+    }
+
+    if (code === 2) {
+        return {
+            icoon: "⛅",
+            tekst: "Half bewolkt"
+        };
+    }
+
+    if (code === 3) {
+        return {
+            icoon: "☁️",
+            tekst: "Bewolkt"
+        };
+    }
+
+    if (code === 45 || code === 48) {
+        return {
+            icoon: "🌫️",
+            tekst: "Mistig"
+        };
+    }
+
+    if (
+        code === 51 ||
+        code === 53 ||
+        code === 55
+    ) {
+        return {
+            icoon: "🌦️",
+            tekst: "Motregen"
+        };
+    }
+
+    if (
+        code === 56 ||
+        code === 57
+    ) {
+        return {
+            icoon: "🌧️",
+            tekst: "IJzelende motregen"
+        };
+    }
+
+    if (
+        code === 61 ||
+        code === 63 ||
+        code === 65
+    ) {
+        return {
+            icoon: "🌧️",
+            tekst: "Regen"
+        };
+    }
+
+    if (
+        code === 66 ||
+        code === 67
+    ) {
+        return {
+            icoon: "🌧️",
+            tekst: "IJzelende regen"
+        };
+    }
+
+    if (
+        code === 71 ||
+        code === 73 ||
+        code === 75 ||
+        code === 77
+    ) {
+        return {
+            icoon: "🌨️",
+            tekst: "Sneeuw"
+        };
+    }
+
+    if (
+        code === 80 ||
+        code === 81 ||
+        code === 82
+    ) {
+        return {
+            icoon: "🌦️",
+            tekst: "Regenbuien"
+        };
+    }
+
+    if (
+        code === 85 ||
+        code === 86
+    ) {
+        return {
+            icoon: "🌨️",
+            tekst: "Sneeuwbuien"
+        };
+    }
+
+    if (
+        code === 95 ||
+        code === 96 ||
+        code === 99
+    ) {
+        return {
+            icoon: "⛈️",
+            tekst: "Onweer"
+        };
+    }
+
+    return {
+        icoon: "🌦️",
+        tekst: "Onbekend weer"
+    };
+}
+
+
+async function haalActueelWeerOp(kast) {
+    if (
+        !kast ||
+        !Number.isFinite(Number(kast.latitude)) ||
+        !Number.isFinite(Number(kast.longitude))
+    ) {
+        throw new Error(
+            "Geen exacte standplaats ingesteld."
+        );
+    }
+
+    const parameters =
+        new URLSearchParams({
+            latitude:
+                String(kast.latitude),
+
+            longitude:
+                String(kast.longitude),
+
+            current: [
+                "temperature_2m",
+                "apparent_temperature",
+                "relative_humidity_2m",
+                "precipitation",
+                "weather_code",
+                "wind_speed_10m",
+                "wind_gusts_10m",
+                "is_day"
+            ].join(","),
+
+            timezone: "auto",
+
+            temperature_unit:
+                "celsius",
+
+            wind_speed_unit:
+                "kmh",
+
+            precipitation_unit:
+                "mm"
+        });
+
+    const antwoord =
+        await fetch(
+            "https://api.open-meteo.com/v1/forecast?" +
+            parameters.toString()
+        );
+
+    if (!antwoord.ok) {
+        throw new Error(
+            `Weer-API gaf foutcode ${antwoord.status}`
+        );
+    }
+
+    const gegevens =
+        await antwoord.json();
+
+    if (!gegevens.current) {
+        throw new Error(
+            "Geen actuele weersgegevens ontvangen."
+        );
+    }
+
+    const huidig =
+        gegevens.current;
+
+    const weerInformatie =
+        maakWeerInformatie(
+            huidig.weather_code
+        );
+
+    return {
+        tijd:
+            huidig.time ||
+            new Date().toISOString(),
+
+        icoon:
+            weerInformatie.icoon,
+
+        omschrijving:
+            weerInformatie.tekst,
+
+        temperatuur:
+            Number(huidig.temperature_2m),
+
+        gevoelstemperatuur:
+            Number(
+                huidig.apparent_temperature
+            ),
+
+        luchtvochtigheid:
+            Number(
+                huidig.relative_humidity_2m
+            ),
+
+        neerslag:
+            Number(huidig.precipitation),
+
+        windsnelheid:
+            Number(huidig.wind_speed_10m),
+
+        windvlagen:
+            Number(huidig.wind_gusts_10m),
+
+        isDag:
+            Boolean(huidig.is_day),
+
+        latitude:
+            Number(kast.latitude),
+
+        longitude:
+            Number(kast.longitude)
+    };
+}
+
+
+function maakWeerSamenvatting(weer) {
+    if (!weer) {
+        return "Geen weersgegevens opgeslagen";
+    }
+
+    return (
+        `${weer.omschrijving}, ` +
+        `${Math.round(weer.temperatuur)} °C`
+    );
+}
+
+
+function maakWeerDetails(weer) {
+    if (!weer) {
+        return "";
+    }
+
+    return (
+        `Gevoel ${Math.round(
+            weer.gevoelstemperatuur
+        )} °C · ` +
+
+        `wind ${Math.round(
+            weer.windsnelheid
+        )} km/u · ` +
+
+        `luchtvochtigheid ${Math.round(
+            weer.luchtvochtigheid
+        )}% · ` +
+
+        `neerslag ${Number(
+            weer.neerslag
+        ).toFixed(1)} mm`
+    );
+}
+
+
+function toonWeerBijControle(weer) {
+    const icoon =
+        haalElementOp(
+            "controle-weer-icoon"
+        );
+
+    const samenvatting =
+        haalElementOp(
+            "controle-weer-samenvatting"
+        );
+
+    const details =
+        haalElementOp(
+            "controle-weer-details"
+        );
+
+    if (icoon) {
+        icoon.textContent =
+            weer ? weer.icoon : "⚠️";
+    }
+
+    if (samenvatting) {
+        samenvatting.textContent =
+            weer
+                ? maakWeerSamenvatting(weer)
+                : "Geen weersgegevens beschikbaar";
+    }
+
+    if (details) {
+        details.textContent =
+            weer
+                ? maakWeerDetails(weer)
+                : "Controleer of de kast een exacte locatie heeft en of je internetverbinding actief is.";
+    }
+}
+
+
+async function laadWeerVoorControle(kast) {
+    tijdelijkeWeerMeting = null;
+
+    const samenvatting =
+        haalElementOp(
+            "controle-weer-samenvatting"
+        );
+
+    const details =
+        haalElementOp(
+            "controle-weer-details"
+        );
+
+    const icoon =
+        haalElementOp(
+            "controle-weer-icoon"
+        );
+
+    if (icoon) {
+        icoon.textContent = "⏳";
+    }
+
+    if (samenvatting) {
+        samenvatting.textContent =
+            "Weergegevens worden opgehaald...";
+    }
+
+    if (details) {
+        details.textContent =
+            "Even geduld.";
+    }
+
+    try {
+        tijdelijkeWeerMeting =
+            await haalActueelWeerOp(kast);
+
+        toonWeerBijControle(
+            tijdelijkeWeerMeting
+        );
+    } catch (fout) {
+        console.warn(
+            "Weer ophalen mislukt:",
+            fout
+        );
+
+        tijdelijkeWeerMeting = null;
+
+        toonWeerBijControle(null);
+    }
+}
+
+// ========================================
 // CONTROLEFORMULIER OPENEN
 // ========================================
 
@@ -1298,6 +2153,8 @@ function openControleFormulier() {
         alert("Open eerst een bijenkast.");
         return;
     }
+
+    laadWeerVoorControle(kast);
 
     zetTekst(
         "formulier-kastnaam",
@@ -1449,7 +2306,7 @@ function stelInvoerWaardeIn(id, waarde) {
 // CONTROLE OPSLAAN
 // ========================================
 
-function slaControleOp(event) {
+async function slaControleOp(event) {
     event.preventDefault();
 
     const kast = haalActieveKastOp();
@@ -1460,6 +2317,23 @@ function slaControleOp(event) {
 
     const seizoen =
         haalSeizoensgegevensOp(kast);
+     
+        let weerTijdensControle =
+    tijdelijkeWeerMeting;
+
+if (!weerTijdensControle) {
+    try {
+        weerTijdensControle =
+            await haalActueelWeerOp(kast);
+    } catch (fout) {
+        console.warn(
+            "De controle wordt zonder weer opgeslagen:",
+            fout
+        );
+
+        weerTijdensControle = null;
+    }
+}
 
     kast.koningin =
         leesInvoerWaarde(
@@ -1661,19 +2535,64 @@ if (kast.automatischControleAdvies) {
         kast.historie = [];
     }
 
-    kast.historie.unshift({
-        datum: kast.laatsteControle,
-        status: kast.status,
+kast.historie.unshift({
+    datum:
+        kast.laatsteControle,
 
-        notitie:
-            `${kast.ramenBezet} ramen bezet, ` +
-            `${kast.ramenBrias} ramen BRIAS. ` +
-            kast.notities
-    });
+    tijdstip:
+        new Intl.DateTimeFormat(
+            "nl-NL",
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        ).format(new Date()),
+
+    status:
+        kast.status,
+
+    temperament:
+        kast.temperament,
+
+    temperamentScore:
+        kast.temperamentScore,
+
+    weer:
+        weerTijdensControle,
+
+    snapshot: {
+        koningin: kast.koningin,
+        broed: kast.broed,
+        ramenBezet: kast.ramenBezet,
+        ramenBrias: kast.ramenBrias,
+        ramenPerBroedkamer: kast.ramenPerBroedkamer || 11,
+        broedkamers: kast.broedkamers,
+        honingkamers: kast.honingkamers,
+        ruimte: kast.ruimte,
+        voer: kast.voer,
+        varroa: kast.varroa,
+        temperament: kast.temperament,
+        temperamentScore: kast.temperamentScore,
+        notities: kast.notities,
+        honingMeegenomen: honingMeegenomen,
+        honingRamen: honingRamen,
+        apifonda: apifonda,
+        suikerwater: suikerwater,
+        volgendeControleDatum: kast.volgendeControleDatum,
+        controleAdviesReden: kast.controleAdviesReden,
+        automatischControleAdvies: kast.automatischControleAdvies
+    },
+
+    notitie:
+        `${kast.ramenBezet} ramen bezet, ` +
+        `${kast.ramenBrias} ramen BRIAS. ` +
+        kast.notities
+});
 
     bewaarGegevens();
     toonKastenOverzicht();
     openKast(kast.id);
+    tijdelijkeWeerMeting = null;
 }
 
 function leesInvoerWaarde(id, standaardWaarde) {
@@ -1814,39 +2733,240 @@ function toonHistorie(historie) {
                 Er zijn nog geen controles geregistreerd.
             </p>
         `;
-
         return;
     }
 
-    historie.forEach((controle) => {
+    historie.forEach((controle, index) => {
         const kaart =
             document.createElement("article");
 
         kaart.className =
-            "historie-kaart";
+            "historie-kaart historie-kaart-klikbaar";
+
+        kaart.tabIndex = 0;
+        kaart.setAttribute("role", "button");
+        kaart.setAttribute(
+            "aria-label",
+            `Bekijk controle van ${controle.datum}`
+        );
+
+        const weerHtml = controle.weer
+            ? `
+                <div class="historie-weer">
+                    <div class="historie-weer-icoon">
+                        ${maakVeiligeTekst(controle.weer.icoon)}
+                    </div>
+                    <div class="historie-weer-inhoud">
+                        <strong>
+                            ${maakVeiligeTekst(maakWeerSamenvatting(controle.weer))}
+                        </strong>
+                        <span>
+                            ${maakVeiligeTekst(maakWeerDetails(controle.weer))}
+                        </span>
+                    </div>
+                </div>
+            `
+            : `
+                <div class="historie-weer">
+                    <div class="historie-weer-icoon">🌦️</div>
+                    <div class="historie-weer-inhoud">
+                        <strong>Geen weer opgeslagen</strong>
+                        <span>
+                            Deze controle is uitgevoerd voordat
+                            weerregistratie was toegevoegd.
+                        </span>
+                    </div>
+                </div>
+            `;
+
+        const temperamentHtml = controle.temperament
+            ? `
+                <span>
+                    Temperament:
+                    ${maakVeiligeTekst(controle.temperament)}
+                </span>
+            `
+            : "";
 
         kaart.innerHTML = `
             <div class="historie-kop">
-
                 <strong>
                     ${maakVeiligeTekst(controle.datum)}
+                    ${
+                        controle.tijdstip
+                            ? ` · ${maakVeiligeTekst(controle.tijdstip)}`
+                            : ""
+                    }
                 </strong>
 
-                <span class="historie-status">
-                    ${maakVeiligeTekst(controle.status)}
-                </span>
-
+                <div class="historie-kop-rechts">
+                    <span class="historie-status">
+                        ${maakVeiligeTekst(controle.status)}
+                    </span>
+                    <span class="historie-open-pijl">›</span>
+                </div>
             </div>
 
-            <p>
-                ${maakVeiligeTekst(controle.notitie)}
-            </p>
+            <p>${maakVeiligeTekst(controle.notitie)}</p>
+            ${temperamentHtml}
+            ${weerHtml}
         `;
+
+        kaart.addEventListener(
+            "click",
+            function () {
+                openHistorischeControle(index);
+            }
+        );
+
+        kaart.addEventListener(
+            "keydown",
+            function (event) {
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+                    event.preventDefault();
+                    openHistorischeControle(index);
+                }
+            }
+        );
 
         controleHistorie.appendChild(kaart);
     });
 }
 
+function openHistorischeControle(index) {
+    const kast = haalActieveKastOp();
+
+    if (
+        !kast ||
+        !Array.isArray(kast.historie) ||
+        !kast.historie[index]
+    ) {
+        return;
+    }
+
+    actieveHistorieIndex = index;
+
+    const controle = kast.historie[index];
+    const snapshot = controle.snapshot || {};
+
+    zetTekst(
+        "historie-detail-titel",
+        `Controle van ${controle.datum}${controle.tijdstip ? ` · ${controle.tijdstip}` : ""}`
+    );
+
+    zetTekst(
+        "historie-detail-subtitel",
+        controle.snapshot
+            ? `${kast.naam} · alle opgeslagen gegevens`
+            : `${kast.naam} · beperkte gegevens uit oudere controle`
+    );
+
+    zetTekst("historie-detail-koningin", snapshot.koningin || "Niet opgeslagen");
+    zetTekst("historie-detail-broed", snapshot.broed || "Niet opgeslagen");
+
+    zetTekst(
+        "historie-detail-ramen-bezet",
+        snapshot.ramenBezet !== undefined
+            ? `${snapshot.ramenBezet} van ${snapshot.ramenPerBroedkamer || kast.ramenPerBroedkamer || 11}`
+            : "Niet opgeslagen"
+    );
+
+    zetTekst(
+        "historie-detail-ramen-brias",
+        snapshot.ramenBrias !== undefined
+            ? `${snapshot.ramenBrias} van ${snapshot.ramenPerBroedkamer || kast.ramenPerBroedkamer || 11}`
+            : "Niet opgeslagen"
+    );
+
+    zetTekst(
+        "historie-detail-temperament",
+        snapshot.temperament || controle.temperament || "Niet opgeslagen"
+    );
+
+    zetTekst("historie-detail-broedkamers", snapshot.broedkamers ?? "Niet opgeslagen");
+    zetTekst("historie-detail-honingkamers", snapshot.honingkamers ?? "Niet opgeslagen");
+    zetTekst("historie-detail-ruimte", snapshot.ruimte || "Niet opgeslagen");
+    zetTekst("historie-detail-voer", snapshot.voer || "Niet opgeslagen");
+    zetTekst("historie-detail-varroa", snapshot.varroa || "Niet opgeslagen");
+
+    zetTekst(
+        "historie-detail-honing",
+        snapshot.honingMeegenomen === true
+            ? "Ja"
+            : snapshot.honingMeegenomen === false
+                ? "Nee"
+                : "Niet opgeslagen"
+    );
+
+    zetTekst("historie-detail-honingramen", snapshot.honingRamen ?? "Niet opgeslagen");
+
+    zetTekst(
+        "historie-detail-apifonda",
+        snapshot.apifonda !== undefined
+            ? `${snapshot.apifonda} zakken`
+            : "Niet opgeslagen"
+    );
+
+    zetTekst(
+        "historie-detail-suikerwater",
+        snapshot.suikerwater !== undefined
+            ? `${snapshot.suikerwater} liter`
+            : "Niet opgeslagen"
+    );
+
+    zetTekst(
+        "historie-detail-volgende-controle",
+        snapshot.volgendeControleDatum
+            ? formatteerIsoDatum(snapshot.volgendeControleDatum)
+            : "Niet opgeslagen"
+    );
+
+    zetTekst(
+        "historie-detail-advies-reden",
+        snapshot.controleAdviesReden || "Niet opgeslagen"
+    );
+
+    zetTekst(
+        "historie-detail-notities",
+        snapshot.notities || controle.notitie || "Geen notities opgeslagen"
+    );
+
+    const weerIcoon = haalElementOp("historie-detail-weer-icoon");
+    const weerSamenvatting = haalElementOp("historie-detail-weer-samenvatting");
+    const weerDetails = haalElementOp("historie-detail-weer-details");
+
+    if (controle.weer) {
+        if (weerIcoon) weerIcoon.textContent = controle.weer.icoon;
+        if (weerSamenvatting) weerSamenvatting.textContent = maakWeerSamenvatting(controle.weer);
+        if (weerDetails) weerDetails.textContent = maakWeerDetails(controle.weer);
+    } else {
+        if (weerIcoon) weerIcoon.textContent = "🌦️";
+        if (weerSamenvatting) weerSamenvatting.textContent = "Geen weer opgeslagen";
+        if (weerDetails) weerDetails.textContent = "Deze controle bevat geen weersnapshot.";
+    }
+
+    verbergScherm("kast-detail");
+    verbergScherm("controle-formulier-scherm");
+    verbergScherm("kast-kaart-scherm");
+    toonScherm("historische-controle-scherm");
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+function sluitHistorischeControle() {
+    actieveHistorieIndex = null;
+    verbergScherm("historische-controle-scherm");
+
+    if (actieveKastId !== null) {
+        toonScherm("kast-detail");
+    }
+}
 
 // ========================================
 // INSTELLINGEN
@@ -1921,90 +3041,46 @@ function sluitInstellingen() {
 }
 
 function vulInstellingenFormulier(kastId) {
-    const kast = bijenkasten.find(
-        (item) =>
-            item.id === Number(kastId)
-    );
-    const seizoen =
-    haalSeizoensgegevensOp(kast);
+    const kast = bijenkasten.find((item) => item.id === Number(kastId));
 
-stelInvoerWaardeIn(
-    "instellingen-apifonda",
-    seizoen.apifondaZakken || 0
-);
-stelInvoerWaardeIn(
-    "instellingen-aantal-ramen",
-    kast.ramenPerBroedkamer || 11
-);
-stelInvoerWaardeIn(
-    "instellingen-suikerwater",
-    seizoen.suikerwaterLiter || 0
-);
-
-stelInvoerWaardeIn(
-    "instellingen-honingramen",
-    seizoen.honingRamenGeoogst || 0
-);
-
-stelInvoerWaardeIn(
-    "instellingen-laatste-voeractie",
-    seizoen.laatsteVoeractie || ""
-);
-
-stelInvoerWaardeIn(
-    "instellingen-laatste-behandeling",
-    seizoen.laatsteBehandeling || ""
-);
-
-stelInvoerWaardeIn(
-    "instellingen-kasttype",
-    kast.kasttype || "Spaarkast"
-);
-
-stelInvoerWaardeIn(
-    "instellingen-koningin-markering",
-    kast.koninginMarkering ||
-        "niet-gemarkeerd"
-);
-
-stelInvoerWaardeIn(
-    "instellingen-herkomst",
-    kast.herkomst || ""
-);
-
-const honingGeoogstCheckbox =
-    haalElementOp(
-        "instellingen-honing-geoogst"
-    );
-
-if (honingGeoogstCheckbox) {
-    honingGeoogstCheckbox.checked =
-        Boolean(seizoen.honingGeoogst);
-}
     if (!kast) {
         return;
     }
 
-    stelInvoerWaardeIn(
-        "instellingen-naam",
-        kast.naam
-    );
+    const seizoen = haalSeizoensgegevensOp(kast);
 
-    stelInvoerWaardeIn(
-        "instellingen-locatie",
-        kast.locatie
-    );
+    stelInvoerWaardeIn("instellingen-naam", kast.naam);
+    stelInvoerWaardeIn("instellingen-locatie", kast.locatie);
+    stelInvoerWaardeIn("instellingen-zoekadres",kast.zoekAdres || "");
+    stelInvoerWaardeIn("instellingen-latitude", kast.latitude ?? "");
+    stelInvoerWaardeIn("instellingen-longitude", kast.longitude ?? "");
 
-    tijdelijkeKastFoto =
-        kast.foto || null;
+    const locatieStatus = haalElementOp("locatie-status");
+    if (locatieStatus) {
+        locatieStatus.textContent = heeftExacteLocatie(kast)
+            ? "Exacte standplaats is ingesteld."
+            : "Nog geen exacte standplaats ingesteld.";
+    }
 
-    toonFotoPreview(
-        tijdelijkeKastFoto
-    );
+    stelInvoerWaardeIn("instellingen-apifonda", seizoen.apifondaZakken || 0);
+    stelInvoerWaardeIn("instellingen-aantal-ramen", kast.ramenPerBroedkamer || 11);
+    stelInvoerWaardeIn("instellingen-suikerwater", seizoen.suikerwaterLiter || 0);
+    stelInvoerWaardeIn("instellingen-honingramen", seizoen.honingRamenGeoogst || 0);
+    stelInvoerWaardeIn("instellingen-laatste-voeractie", seizoen.laatsteVoeractie || "");
+    stelInvoerWaardeIn("instellingen-laatste-behandeling", seizoen.laatsteBehandeling || "");
+    stelInvoerWaardeIn("instellingen-kasttype", kast.kasttype || "Spaarkast");
+    stelInvoerWaardeIn("instellingen-koningin-markering", kast.koninginMarkering || "niet-gemarkeerd");
+    stelInvoerWaardeIn("instellingen-herkomst", kast.herkomst || "");
 
-    const fotoInvoer =
-        haalElementOp("instellingen-foto");
+    const honingGeoogstCheckbox = haalElementOp("instellingen-honing-geoogst");
+    if (honingGeoogstCheckbox) {
+        honingGeoogstCheckbox.checked = Boolean(seizoen.honingGeoogst);
+    }
 
+    tijdelijkeKastFoto = kast.foto || null;
+    toonFotoPreview(tijdelijkeKastFoto);
+
+    const fotoInvoer = haalElementOp("instellingen-foto");
     if (fotoInvoer) {
         fotoInvoer.value = "";
     }
@@ -2259,8 +3335,39 @@ function slaKastInstellingenOp(event) {
         return;
     }
 
+    const latitudeTekst = leesInvoerWaarde("instellingen-latitude", "").trim();
+    const longitudeTekst = leesInvoerWaarde("instellingen-longitude", "").trim();
+
+    const heeftLatitude = latitudeTekst !== "";
+    const heeftLongitude = longitudeTekst !== "";
+
+    if (heeftLatitude !== heeftLongitude) {
+        alert("Vul zowel de breedtegraad als de lengtegraad in.");
+        return;
+    }
+
+    let latitude = null;
+    let longitude = null;
+
+    if (heeftLatitude && heeftLongitude) {
+        latitude = Number(latitudeTekst);
+        longitude = Number(longitudeTekst);
+
+        if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 ||
+            !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+            alert("De ingevoerde coördinaten zijn niet geldig.");
+            return;
+        }
+    }
+
     kast.naam = nieuweNaam;
     kast.locatie = nieuweLocatie;
+    kast.zoekAdres =
+    leesInvoerWaarde(
+        "instellingen-zoekadres","").trim();
+
+kast.latitude = latitude;
+kast.longitude = longitude;
     kast.foto = tijdelijkeKastFoto;
     kast.ramenPerBroedkamer =
     leesGetal(
@@ -2644,6 +3751,16 @@ activeerKnop(
 );
 
 function activeerKnoppen() {
+    activeerKnop("kaart-openen-knop", "click", openKastKaart);
+    activeerKnop("historie-detail-terug-knop", "click", sluitHistorischeControle);
+    activeerKnop("kaart-terug-knop", "click", sluitKastKaart);
+    activeerKnop("adres-zoeken-knop","click",zoekAdresLocatie);
+    activeerKnop("huidige-locatie-knop", "click", gebruikHuidigeLocatie);
+
+    [1, 3, 5].forEach((afstand) => {
+        activeerKnop(`kaart-cirkel-${afstand}`, "change", werkKaartCirkelsBij);
+    });
+
     activeerKnop(
         "terug-knop",
         "click",
@@ -2652,6 +3769,8 @@ function activeerKnoppen() {
             verbergScherm(
                 "controle-formulier-scherm"
             );
+            verbergScherm("kast-kaart-scherm");
+            verbergScherm("historische-controle-scherm");
             toonScherm("kasten-overzicht");
 
             actieveKastId = null;
@@ -2828,6 +3947,8 @@ function voegNieuweKastToe() {
         id: nieuwId,
         naam: `Kast ${nieuwId}`,
         locatie: "Nog invullen",
+        latitude: null,
+        longitude: null,
         foto: null,
 
         status: "Aandacht",

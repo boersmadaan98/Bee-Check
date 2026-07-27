@@ -780,6 +780,23 @@ summary:focus-visible {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+    align-items: start;
+}
+
+.nummer-grid .invoer-groep {
+    margin-bottom: 0;
+}
+
+@media (max-width: 500px) {
+    .nummer-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.nummer-grid .invoer-groep > span {
+    min-height: 18px;
+    display: flex;
+    align-items: flex-end;
 }
 
 .schakel-rij {
@@ -1427,4 +1444,456 @@ summary:focus-visible {
 
 .volgorde-knop:active {
     transform: scale(0.94);
+}
+/* ========================================
+   KAART EN EXACTE STANDPLAATS
+======================================== */
+
+.kast-hoofdkaart-acties {
+    display: grid;
+    justify-items: end;
+    gap: 9px;
+}
+
+.wereldbol-knop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 43px;
+    height: 43px;
+    padding: 0;
+    border: 1px solid var(--rand);
+    border-radius: 14px;
+    background: var(--geel-licht);
+    color: var(--tekst);
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.wereldbol-knop:active {
+    transform: scale(0.95);
+}
+
+.kaart-kop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+    padding: 20px;
+    border: 1px solid var(--rand);
+    border-radius: 20px;
+    background: var(--kaart);
+    box-shadow: var(--schaduw);
+}
+
+.kaart-kop h2 {
+    margin: 5px 0 5px;
+}
+
+.kaart-kop p:last-child {
+    margin: 0;
+    color: var(--tekst-zacht);
+}
+
+.kaart-kop-icoon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    border-radius: 17px;
+    background: var(--geel-licht);
+    font-size: 28px;
+}
+
+.kaart-legenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 12px;
+}
+
+.kaart-legenda label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 42px;
+    padding: 9px 13px;
+    border: 1px solid var(--rand);
+    border-radius: 999px;
+    background: var(--kaart);
+    font-size: 14px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.kaart-legenda input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--groen);
+}
+
+.vlieggebied-kaart {
+    width: 100%;
+    height: min(62vh, 540px);
+    min-height: 380px;
+    overflow: hidden;
+    border: 1px solid var(--rand);
+    border-radius: 20px;
+    background: #e9e6dc;
+    box-shadow: var(--schaduw);
+}
+
+.kaart-uitleg {
+    margin: 12px 2px 0;
+    color: var(--tekst-zacht);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.exacte-locatie-blok {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid var(--rand);
+    border-radius: 17px;
+    background: var(--zachte-achtergrond);
+}
+
+.exacte-locatie-blok h3 {
+    margin: 0 0 5px;
+    font-size: 16px;
+}
+
+.exacte-locatie-blok p {
+    margin: 0;
+    color: var(--tekst-zacht);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.locatie-knop {
+    min-height: 48px;
+    padding: 11px 15px;
+    border: 1px solid var(--rand);
+    border-radius: 14px;
+    background: var(--kaart);
+    color: var(--tekst);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.locatie-knop:active {
+    transform: scale(0.985);
+}
+
+.locatie-status {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--geel-licht);
+    color: var(--geel-donker) !important;
+    font-weight: 700;
+}
+
+@media (max-width: 500px) {
+    .vlieggebied-kaart {
+        height: 58vh;
+        min-height: 340px;
+    }
+}
+/* ========================================
+   WEER TIJDENS CONTROLE
+======================================== */
+
+.controle-weer-kaart {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px;
+    border: 1px solid var(--rand);
+    border-radius: 18px;
+    background: var(--geel-licht);
+}
+
+.controle-weer-icoon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+
+    border-radius: 15px;
+    background: var(--kaart);
+    font-size: 25px;
+}
+
+.controle-weer-inhoud {
+    min-width: 0;
+}
+
+.controle-weer-inhoud > span {
+    display: block;
+    margin-bottom: 4px;
+
+    color: var(--geel-donker);
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.controle-weer-inhoud strong {
+    display: block;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.controle-weer-inhoud small {
+    display: block;
+    margin-top: 4px;
+
+    color: var(--tekst-zacht);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* Weergegevens in de controlehistorie */
+
+.historie-weer {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    margin-top: 11px;
+    padding: 10px 12px;
+
+    border-radius: 12px;
+    background: var(--geel-licht);
+}
+
+.historie-weer-icoon {
+    flex-shrink: 0;
+    font-size: 22px;
+}
+
+.historie-weer-inhoud strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 13px;
+}
+
+.historie-weer-inhoud span {
+    display: block;
+    color: var(--tekst-zacht);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+/* ========================================
+   HISTORISCHE CONTROLE ALLEEN-LEZEN
+======================================== */
+
+.historie-kaart-klikbaar {
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        transform 0.15s ease,
+        background 0.15s ease;
+}
+
+.historie-kaart-klikbaar:hover {
+    border-color: var(--rand);
+    background: var(--kaart);
+}
+
+.historie-kaart-klikbaar:active {
+    transform: scale(0.99);
+}
+
+.historie-kop-rechts {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.historie-open-pijl {
+    color: var(--geel-donker);
+    font-size: 24px;
+    line-height: 1;
+}
+
+.historie-detail-kop {
+    margin-bottom: 16px;
+}
+
+.historie-detail-weer {
+    margin-bottom: 16px;
+}
+
+.historie-detail-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.historie-detail-rij {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--rand);
+}
+
+.historie-detail-rij:last-child {
+    border-bottom: 0;
+}
+
+.historie-detail-rij span {
+    color: var(--tekst-zacht);
+    font-size: 14px;
+}
+
+.historie-detail-rij strong {
+    max-width: 60%;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: right;
+}
+
+.historie-detail-notities {
+    grid-column: 1 / -1;
+}
+
+.historie-detail-notitieblok {
+    padding-top: 15px;
+}
+
+.historie-detail-notitieblok span {
+    color: var(--tekst-zacht);
+    font-size: 13px;
+}
+
+.historie-detail-notitieblok p {
+    margin: 8px 0 0;
+    line-height: 1.55;
+}
+
+@media (min-width: 700px) {
+    .historie-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ========================================
+   DRACHTKALENDER OP KAARTPAGINA
+======================================== */
+
+.dracht-sectie {
+    margin-top: 22px;
+    padding: 18px;
+    border: 1px solid var(--rand);
+    border-radius: 20px;
+    background: var(--kaart);
+    box-shadow: var(--schaduw);
+}
+
+.dracht-kop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.dracht-kop h3 {
+    margin: 4px 0 0;
+    font-size: 20px;
+}
+
+.dracht-maand-badge {
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: var(--geel-licht);
+    color: var(--geel-donker);
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: capitalize;
+}
+
+.dracht-uitleg {
+    margin: 10px 0 15px;
+    color: var(--tekst-zacht);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.dracht-lijst {
+    display: grid;
+    gap: 10px;
+}
+
+.dracht-kaart {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px;
+    border: 1px solid var(--rand);
+    border-radius: 15px;
+    background: var(--zachte-achtergrond);
+}
+
+.dracht-icoon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 13px;
+    background: var(--geel-licht);
+    font-size: 22px;
+}
+
+.dracht-inhoud {
+    min-width: 0;
+}
+
+.dracht-inhoud strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 15px;
+}
+
+.dracht-status {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.dracht-inhoud small {
+    color: var(--tekst-zacht);
+    font-size: 12px;
+}
+
+.dracht-actief {
+    color: var(--groen);
+}
+
+.dracht-binnenkort {
+    color: var(--oranje);
+}
+
+.dracht-afgelopen {
+    color: var(--tekst-zacht);
+}
+
+@media (min-width: 650px) {
+    .dracht-lijst {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
