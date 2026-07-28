@@ -301,13 +301,23 @@ function laadGegevens() {
                 const advies =
                     berekenControleAdvies(kast);
 
-                kast.volgendeControleDatum =
-                    maakIsoDatum(
-                        voegDagenToe(
-                            new Date(),
-                            advies.dagen
-                        )
-                    );
+                const onderdelen =
+    controleDatumIso.split("-");
+
+const basisDatum =
+    new Date(
+        Number(onderdelen[0]),
+        Number(onderdelen[1]) - 1,
+        Number(onderdelen[2])
+    );
+
+kast.volgendeControleDatum =
+    maakIsoDatum(
+        voegDagenToe(
+            basisDatum,
+            advies.dagen
+        )
+    );
 
                 kast.controleAdviesDagen =
                     advies.dagen;
@@ -543,7 +553,25 @@ function haalSeizoensgegevensOp(kast) {
     return kast.seizoenen[actiefSeizoen];
 }
 
-function maakDatumTekst() {
+function maakDatumTekstVanIso(isoDatum) {
+    if (!isoDatum) {
+        return maakDatumTekst();
+    }
+
+    const onderdelen =
+        isoDatum.split("-");
+
+    if (onderdelen.length !== 3) {
+        return maakDatumTekst();
+    }
+
+    const datum =
+        new Date(
+            Number(onderdelen[0]),
+            Number(onderdelen[1]) - 1,
+            Number(onderdelen[2])
+        );
+
     return new Intl.DateTimeFormat(
         "nl-NL",
         {
@@ -551,8 +579,9 @@ function maakDatumTekst() {
             month: "long",
             year: "numeric"
         }
-    ).format(new Date());
+    ).format(datum);
 }
+
 function maakIsoDatum(datum) {
     const jaar = datum.getFullYear();
 
@@ -2161,6 +2190,24 @@ function openControleFormulier() {
         kast.naam
     );
 
+    const vandaagIso =
+    maakIsoDatum(new Date());
+
+    stelInvoerWaardeIn(
+    "invoer-controle-datum",
+    vandaagIso
+    );
+
+const controleDatumInvoer =
+    haalElementOp(
+        "invoer-controle-datum"
+    );
+
+if (controleDatumInvoer) {
+    controleDatumInvoer.max =
+        vandaagIso;
+    }
+
     stelInvoerWaardeIn(
         "invoer-koningin",
         kast.koningin
@@ -2524,11 +2571,11 @@ if (kast.automatischControleAdvies) {
 
     if (voeracties.length > 0) {
         seizoen.laatsteVoeractie =
-            `${maakDatumTekst()} - ${voeracties.join(" en ")}`;
+    `${controleDatumTekst} - ${voeracties.join(" en ")}`;
     }
 
     kast.laatsteControle =
-        maakDatumTekst();
+    controleDatumTekst;
 
 
     if (!Array.isArray(kast.historie)) {
@@ -2536,17 +2583,22 @@ if (kast.automatischControleAdvies) {
     }
 
 kast.historie.unshift({
+    datumIso:
+        controleDatumIso,
+
     datum:
-        kast.laatsteControle,
+        controleDatumTekst,
 
     tijdstip:
-        new Intl.DateTimeFormat(
-            "nl-NL",
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        ).format(new Date()),
+        controleDatumIso === vandaagIso
+            ? new Intl.DateTimeFormat(
+                "nl-NL",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            ).format(new Date())
+            : null,
 
     status:
         kast.status,
